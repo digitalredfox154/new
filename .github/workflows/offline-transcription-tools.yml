@@ -1,0 +1,46 @@
+name: Build offline transcription tools
+on:
+  push:
+    branches: ['tools/offline-transcription-20260909']
+    paths: ['.github/workflows/offline-transcription-tools.yml']
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Download official Python wheels
+        run: |
+          mkdir -p bundle/wheels bundle/model-small
+          python -m pip download --only-binary=:all: --dest bundle/wheels faster-whisper
+          python -m pip install huggingface_hub
+      - name: Download multilingual model and record checksums
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+        run: |
+          python - <<'PY'
+          from huggingface_hub import snapshot_download, HfApi
+          import pathlib, hashlib, json
+          repo = 'Systran/faster-whisper-small'
+          revision = HfApi().model_info(repo).sha
+          snapshot_download(repo_id=repo, revision=revision, local_dir='bundle/model-small', allow_patterns=['config.json','model.bin','tokenizer.json','vocabulary.json','preprocessor_config.json'])
+          root = pathlib.Path('bundle')
+          checksums = {}
+          for p in sorted(root.rglob('*')):
+              if p.is_file() and '.cache' not in p.parts:
+                  checksums[str(p.relative_to(root))] = hashlib.file_digest(p.open('rb'), 'sha256').hexdigest()
+          (root / 'manifest.json').write_text(json.dumps({'model':repo,'revision':revision,'sha256':checksums},indent=2))
+          print(json.dumps({'model':repo,'revision':revision,'files':len(checksums)}))
+          PY
+          rm -rf bundle/model-small/.cache
+      - uses: actions/upload-artifact@v4
+        with:
+          name: offline-transcription-tools-py313
+          path: bundle/
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
