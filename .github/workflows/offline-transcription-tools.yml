@@ -39,8 +39,20 @@ jobs:
           rm -rf bundle/model-small/.cache
       - uses: actions/upload-artifact@v4
         with:
-          name: offline-transcription-tools-py313
-          path: bundle/
+          name: offline-model-small
+          path: bundle/model-small/
           compression-level: 0
           retention-days: 1
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: offline-wheels-py313
+          path: bundle/wheels/
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: offline-manifest
+          path: bundle/manifest.json
+          retention-days: 1
