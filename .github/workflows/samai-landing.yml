@@ -2,20 +2,36 @@ name: SAMAI landing checks and release
 on:
   push:
     branches: [samai-landing]
-    paths: ['site/**', 'tools/**', '.github/workflows/samai-landing.yml', 'requirements-ci.txt', 'playwright.config.*']
+    paths: ['site/**', 'tools/**', '.github/workflows/samai-landing.yml', 'requirements-ci.txt']
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: samai-landing-test
   cancel-in-progress: false
 jobs:
-  check:
+  bootstrap:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: samai-landing
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Validate JavaScript syntax
         run: node --check site/v04.js
+      - name: Import original source once
+        run: |
+          if [ ! -f site/index.html ]; then
+            python3 tools/import_source.py
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add site
+            git commit -m 'Import verified SAMAI source and original logo'
+            git push origin HEAD:samai-landing
+          fi
+      - name: Report source readiness
+        run: |
+          test -s site/index.html
+          echo 'Source is versioned. Browser gate and REG delivery are being configured.' >> "$GITHUB_STEP_SUMMARY"
