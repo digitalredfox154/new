@@ -4,34 +4,57 @@ on:
     branches: [samai-landing]
     paths: ['site/**', 'tools/**', '.github/workflows/samai-landing.yml', 'requirements-ci.txt']
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: samai-landing-test
   cancel-in-progress: false
 jobs:
-  bootstrap:
+  verify-and-package:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: samai-landing
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate JavaScript syntax
-        run: node --check site/v04.js
-      - name: Import original source once
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate all JavaScript
         run: |
-          if [ ! -f site/index.html ]; then
-            python3 tools/import_source.py
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add site
-            git commit -m 'Import verified SAMAI source and original logo'
-            git push origin HEAD:samai-landing
-          fi
-      - name: Report source readiness
+          for file in site/*.js; do
+            node --check "$file"
+          done
+      - name: Install browser gate
         run: |
-          test -s site/index.html
-          echo 'Source is versioned. Browser gate and REG delivery are being configured.' >> "$GITHUB_STEP_SUMMARY"
+          pip install -r requirements-ci.txt
+          python -m playwright install --with-deps chromium firefox
+      - name: Build exact commit
+        run: python tools/build.py
+      - name: Mandatory Chromium and Firefox browser gate
+        run: python tools/browser_gate.py
+      - name: Save checks screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: samai-checks-${{ github.sha }}
+          path: artifacts/
+          retention-days: 14
+      - name: Checkout isolated release working copy
+        uses: actions/checkout@v4
+        with:
+          path: release-store
+      - name: Publish tested static release
+        run: sh tools/publish.sh
+      - name: Save tested build
+        uses: actions/upload-artifact@v4
+        with:
+          name: samai-build-${{ github.sha }}
+          path: dist/
+          retention-days: 14
+      - name: Release summary
+        run: |
+          echo "Verified build: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo 'REG may activate this build only after this complete workflow succeeds.' >> "$GITHUB_STEP_SUMMARY"
