@@ -1,0 +1,21 @@
+name: SAMAI landing checks and release
+on:
+  push:
+    branches: [samai-landing]
+    paths: ['site/**', 'tools/**', '.github/workflows/samai-landing.yml', 'requirements-ci.txt', 'playwright.config.*']
+permissions:
+  contents: read
+concurrency:
+  group: samai-landing-test
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        run: node --check site/v04.js
