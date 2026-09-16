@@ -1,5 +1,5 @@
 """Focused v08 checks. General form/browser coverage remains in browser_gate.py."""
-import functools, http.server, json, threading
+import functools, http.server, json, os, threading
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
@@ -17,7 +17,7 @@ def text_rect(locator):
     return locator.evaluate('''el=>{const n=el.firstChild;if(!n)return null;const r=document.createRange();r.selectNodeContents(el);const b=r.getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height};}''')
 try:
   with sync_playwright() as p:
-    for engine in ['chromium','firefox','webkit']:
+    for engine in [x for x in os.environ.get('SAMAI_BROWSERS','chromium,firefox,webkit').split(',') if x]:
       browser=getattr(p,engine).launch()
       page=browser.new_page(viewport={'width':1440,'height':1000})
       errors=[];page.on('pageerror',lambda e:errors.append(str(e)))

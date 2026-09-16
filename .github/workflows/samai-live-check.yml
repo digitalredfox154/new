@@ -2,8 +2,17 @@ name: SAMAI live release verification
 on:
   push:
     branches: [samai-landing]
-    paths: ['.github/workflows/samai-live-check.yml']
+    paths: ['site/**', 'tools/**', '.github/workflows/samai-landing.yml', '.github/workflows/samai-live-check.yml', 'requirements-ci.txt']
   workflow_dispatch:
+    inputs:
+      landing_sha:
+        description: Exact landing commit to verify; defaults to the selected branch commit
+        required: false
+        type: string
+      app_sha:
+        description: Optional exact hmn-platform commit; health is always checked
+        required: false
+        type: string
 permissions:
   contents: read
 jobs:
@@ -11,8 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      EXPECTED_LANDING_SHA: 71575f3b65406eaba3b6017d083ee6f76fb172a7
-      EXPECTED_APP_SHA: 3efe00daa47e08f3516bf164802bd0ea4a54fecc
+      EXPECTED_LANDING_SHA: ${{ inputs.landing_sha || github.sha }}
+      EXPECTED_APP_SHA: ${{ inputs.app_sha }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,13 +34,13 @@ jobs:
       - name: Verify the actual public release without submitting forms
         run: |
           python - <<'PY'
-          import hashlib, json, os, time, urllib.request
+          import hashlib, json, os, re, time, urllib.request
           from pathlib import Path
           from playwright.sync_api import sync_playwright
           site='https://samaiconsulting.ru/test/'
           app='https://app.samaiconsulting.ru'
           expected=os.environ['EXPECTED_LANDING_SHA']
-          expected_app=os.environ['EXPECTED_APP_SHA']
+          expected_app=os.environ.get('EXPECTED_APP_SHA','').strip()
           out=Path('live-evidence');out.mkdir(exist_ok=True)
           report={'scope':'Live HTTPS, read-only browser verification; no real form submission; emulated mobile, not a physical device.','expectedLandingSha':expected,'expectedAppSha':expected_app,'checks':[],'metrics':[]}
           def read(url,origin=None):
@@ -43,17 +52,21 @@ jobs:
               report['checks'].append({'name':name,'passed':bool(ok)})
               assert ok,name
           try:
+              check('expected landing SHA is valid',re.fullmatch(r'[0-9a-f]{40}',expected) is not None)
+              if expected_app:check('expected application SHA is valid',re.fullmatch(r'[0-9a-f]{40}',expected_app) is not None)
               ready=False
               for attempt in range(55):
                   try:
                       d=json.loads(read(site+'deployment.json?t='+str(time.time_ns()))[2])
                       h=json.loads(read(app+'/api/health?t='+str(time.time_ns()))[2])
-                      ready=d.get('sourceSha')==expected and h.get('version')==expected_app
+                      ready=d.get('sourceSha')==expected
                       if ready:report['deployment']=d;report['appHealth']=h;break
                       print('Waiting for approved release:',d.get('release'),h.get('version'),flush=True)
                   except Exception as e:print('Readiness check:',type(e).__name__,flush=True)
                   time.sleep(20)
-              check('exact approved landing and application are live',ready)
+              check('exact approved landing is live',ready)
+              check('application health is ready',h.get('ok') is True and h.get('database')=='ready' and len(h.get('version',''))==40)
+              if expected_app:check('exact approved application is live',h.get('version')==expected_app)
               manifest=json.loads(read(site+'release.json?t='+str(time.time_ns()))[2])
               check('public manifest exact SHA',manifest['sourceSha']==expected)
               for item in manifest['files']:
@@ -73,7 +86,7 @@ jobs:
                       response=page.goto(site+'?release-check='+expected,wait_until='load')
                       page.wait_for_function('window.SamaiMotion && window.SAMAI_TRACK')
                       check(engine+' live HTML',response.status==200)
-                      check(engine+' exact build marker',page.locator('meta[name="samai-build"]').get_attribute('content')=='05-ci-'+expected[:12])
+                      check(engine+' exact build marker',page.locator('meta[name="samai-build"]').get_attribute('content')==manifest['release'])
                       check(engine+' noindex preview','noindex' in page.locator('meta[name="robots"]').get_attribute('content'))
                       check(engine+' logo loaded',page.locator('.brand-image').evaluate('(e)=>e.complete&&e.naturalWidth>0'))
                       page.evaluate('window.SamaiMotion.replay("signal")')

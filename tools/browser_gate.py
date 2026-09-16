@@ -1,5 +1,5 @@
 """Three-engine functional checks. All API requests are intercepted; never create live leads."""
-import contextlib, functools, http.server, json, threading, traceback
+import contextlib, functools, http.server, json, os, threading, traceback
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 out=Path('artifacts');out.mkdir(exist_ok=True)
@@ -29,7 +29,7 @@ def install_api_routes(context,leads,events,mode):
 
 try:
   with sync_playwright() as p:
-    for engine in ['chromium','firefox','webkit']:
+    for engine in [x for x in os.environ.get('SAMAI_BROWSERS','chromium,firefox,webkit').split(',') if x]:
       browser=getattr(p,engine).launch()
       context=browser.new_context(viewport={'width':1440,'height':1000})
       context.add_init_script('window.__SAMAI_TEST_TRANSPORT=true')
