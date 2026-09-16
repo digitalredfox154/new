@@ -32,7 +32,9 @@ try:
       for width in [320,390,430]:
         page.set_viewport_size({'width':width,'height':844});page.evaluate('window.scrollTo(0,0)');page.wait_for_timeout(80)
         toggle=page.locator('.motion-toggle').bounding_box()
-        check(engine+f' motion target {width}',toggle and toggle['width']>=44 and toggle['height']>=44,toggle)
+        # Browser layout geometry is reported as floating point; Firefox can return
+        # 43.99998px for an authored 44px control.
+        check(engine+f' motion target {width}',toggle and toggle['width']>=43.95 and toggle['height']>=43.95,toggle)
         words=last_line_words(page.locator('#situation-heading'))
         check(engine+f' balanced situation heading {width}',words>=2,{'lastLineWords':words})
         check(engine+f' no mobile overflow {width}',page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'))
