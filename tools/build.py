@@ -45,7 +45,7 @@ head_add = '''
 <meta property="og:url" content="https://samaiconsulting.ru/"/><meta property="og:image" content="https://samaiconsulting.ru/test/assets/logo-f28c8f1a274e05ce.png"/>
 <meta name="twitter:card" content="summary"/>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"ProfessionalService","name":"Samai Consulting","legalName":"Индивидуальный предприниматель Самай Сергей Леонидович","url":"https://samaiconsulting.ru/","address":{"@type":"PostalAddress","postalCode":"420099","addressCountry":"RU","addressRegion":"Республика Татарстан","addressLocality":"Казань","streetAddress":"ул. Березовая (Щербаково), д. 9"}}</script>
-<link rel="stylesheet" href="v05.css">'''
+<link rel="stylesheet" href="v05.css"><link rel="stylesheet" href="v06.css">'''
 html = html.replace('</head>', head_add + '\n</head>', 1)
 html = html.replace('</body>', '<script src="v05.js"></script>\n</body>', 1)
 html = html.replace('Демонстрация формы · данные не отправляются', 'Оставьте контакт — ответственный руководитель получит заявку')
@@ -60,7 +60,7 @@ html = html.replace(old_fine, 'После отправки данные испо
 html = html.replace('Для проверки формы включите JavaScript. Отправка в прототипе не подключена.', 'Для отправки заявки через сайт необходимо включить JavaScript.')
 html = html.replace('Предпросмотр · Форма без отправки', '<span class="legal-links"><a data-legal href="privacy.html">Политика данных</a><a data-legal href="consent.html">Согласие</a></span>')
 
-release = '05-ci-' + sha[:12]
+release = '06-ci-' + sha[:12]
 html, count = re.subn(r'(<meta name="samai-build" content=")[^"]+', lambda m: m[1] + release, html)
 assert count == 1, 'Missing or ambiguous build marker'
 for before, after in sorted(mapping.items(), key=lambda p: -len(p[0])):
