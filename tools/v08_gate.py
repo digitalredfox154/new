@@ -9,6 +9,10 @@ threading.Thread(target=server.serve_forever,daemon=True).start()
 checks=[]
 def check(name,value,detail=None):
     checks.append({'name':name,'passed':bool(value),'detail':detail});assert value,f'{name}: {detail}'
+def separated(a,b,gap=4):
+    if not a or not b:return False
+    return (a['x']+a['width'] <= b['x']-gap or b['x']+b['width'] <= a['x']-gap or
+            a['y']+a['height'] <= b['y']-gap or b['y']+b['height'] <= a['y']-gap)
 try:
   with sync_playwright() as p:
     for engine in ['chromium','firefox','webkit']:
@@ -23,9 +27,11 @@ try:
       check(engine+' threshold',page.locator('.v08-threshold').count()==1)
       check(engine+' system labels',page.locator('.v08-system-labels').count()==1)
       check(engine+' prefooter',page.locator('.v08-prefooter').count()==1)
-      title=page.locator('[data-title-line="1"]').bounding_box();plate=page.locator('.plate-front').bounding_box()
-      clear=bool(title and plate and title['x']+title['width'] <= plate['x']-4)
-      check(engine+' headline clear of visible logo plate',clear,{'title':title,'plate':plate})
+      for width in [1024,1150,1440,1920]:
+        page.set_viewport_size({'width':width,'height':1000});page.evaluate('window.scrollTo(0,0)');page.wait_for_timeout(80)
+        title=page.locator('[data-title-line="1"]').bounding_box();plate=page.locator('.plate-front').bounding_box()
+        check(engine+f' headline/logo separated {width}',separated(title,plate,4),{'title':title,'plate':plate})
+      page.set_viewport_size({'width':1440,'height':1000})
       tabs=page.locator('[data-v08-format]')
       check(engine+' format selector tabs',tabs.count()==3)
       check(engine+' management selected',tabs.nth(1).get_attribute('aria-selected')=='true')
