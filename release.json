@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "release": "07-ci-a74e40dca289",
-  "sourceSha": "a74e40dca289383dc511ed751852d90abe8fdd61",
+  "release": "08-ci-c32915b4a61e",
+  "sourceSha": "c32915b4a61e526151385f2a8c0aca4e3f37aa53",
   "repository": "digitalredfox154/new",
   "sourceBranch": "samai-landing",
-  "runId": 35077571268,
+  "runId": 35084995354,
   "runAttempt": 1,
   "target": "/test/",
   "files": [
@@ -49,14 +49,24 @@
       "bytes": 7022
     },
     {
+      "path": "assets/v08.050bcdaf33bbaca4.css",
+      "sha256": "050bcdaf33bbaca4e2b23af9d7a4d5d0707b3ebfabf4654ebc20e87583d7b55d",
+      "bytes": 15424
+    },
+    {
+      "path": "assets/v08.1e23dda6370fdb32.js",
+      "sha256": "1e23dda6370fdb3292992be4cf49decf846cd65bbc8916e2c28bc5dbaf963f18",
+      "bytes": 7095
+    },
+    {
       "path": "consent.html",
       "sha256": "db859f2304fe53f4de4b18951adfa351c97c76f3a811102d9999311ca98b6ff2",
       "bytes": 4529
     },
     {
       "path": "index.html",
-      "sha256": "893ed61d4d2dddeafc7d637b86566358dcfa3314aa40471904cab32c1825cade",
-      "bytes": 35585
+      "sha256": "6dda3188a4674e5df456911ef2c3b8e4f49cbe026810a9b46f69d687150e08b2",
+      "bytes": 35967
     },
     {
       "path": "privacy.html",
