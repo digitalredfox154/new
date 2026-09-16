@@ -1,7 +1,7 @@
 name: SAMAI landing checks and release
 on:
   push:
-    branches: [samai-landing, samai-landing-v05, samai-landing-v06]
+    branches: [samai-landing, samai-landing-v05, samai-landing-v06, samai-landing-v07]
     paths: ['site/**', 'tools/**', '.github/workflows/samai-landing.yml', 'requirements-ci.txt']
 permissions:
   contents: read
