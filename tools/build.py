@@ -35,7 +35,10 @@ assert html.count('Демонстрация формы · данные не от
 assert html.count('Предпросмотр · Форма без отправки') == 1
 
 head_add = '''
-<meta name="referrer" content="strict-origin-when-cross-origin"/>
+<meta name="referrer" content="strict-origin-when-cross-origin"/><meta name="theme-color" content="#000000"/>
+<link rel="canonical" href="https://samaiconsulting.ru/"/>
+<link rel="icon" type="image/png" href="assets/logo-f28c8f1a274e05ce.png"/>
+<link rel="apple-touch-icon" href="assets/logo-f28c8f1a274e05ce.png"/>
 <meta property="og:type" content="website"/><meta property="og:locale" content="ru_RU"/>
 <meta property="og:title" content="SAMAI Consulting — маркетинг в одних руках"/>
 <meta property="og:description" content="Стратегия и управление маркетингом для B2B-компаний и экспертных проектов."/>
