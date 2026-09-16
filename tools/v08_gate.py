@@ -13,6 +13,8 @@ def separated(a,b,gap=4):
     if not a or not b:return False
     return (a['x']+a['width'] <= b['x']-gap or b['x']+b['width'] <= a['x']-gap or
             a['y']+a['height'] <= b['y']-gap or b['y']+b['height'] <= a['y']-gap)
+def text_rect(locator):
+    return locator.evaluate('''el=>{const n=el.firstChild;if(!n)return null;const r=document.createRange();r.selectNodeContents(el);const b=r.getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height};}''')
 try:
   with sync_playwright() as p:
     for engine in ['chromium','firefox','webkit']:
@@ -29,8 +31,8 @@ try:
       check(engine+' prefooter',page.locator('.v08-prefooter').count()==1)
       for width in [1024,1150,1440,1920]:
         page.set_viewport_size({'width':width,'height':1000});page.evaluate('window.scrollTo(0,0)');page.wait_for_timeout(80)
-        title=page.locator('[data-title-line="1"]').bounding_box();plate=page.locator('.plate-front').bounding_box()
-        check(engine+f' headline/logo separated {width}',separated(title,plate,4),{'title':title,'plate':plate})
+        title=text_rect(page.locator('[data-title-line="1"]'));plate=page.locator('.plate-front').bounding_box()
+        check(engine+f' rendered headline/logo separated {width}',separated(title,plate,4),{'title':title,'plate':plate})
       page.set_viewport_size({'width':1440,'height':1000})
       tabs=page.locator('[data-v08-format]')
       check(engine+' format selector tabs',tabs.count()==3)
