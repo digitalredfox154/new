@@ -1,0 +1,121 @@
+name: SAMAI live release verification
+on:
+  push:
+    branches: [samai-landing]
+    paths: ['.github/workflows/samai-live-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      EXPECTED_LANDING_SHA: 71575f3b65406eaba3b6017d083ee6f76fb172a7
+      EXPECTED_APP_SHA: 3efe00daa47e08f3516bf164802bd0ea4a54fecc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated browser clients
+        run: |
+          pip install -r requirements-ci.txt
+          python -m playwright install --with-deps chromium firefox webkit
+      - name: Verify the actual public release without submitting forms
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, time, urllib.request
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+          site='https://samaiconsulting.ru/test/'
+          app='https://app.samaiconsulting.ru'
+          expected=os.environ['EXPECTED_LANDING_SHA']
+          expected_app=os.environ['EXPECTED_APP_SHA']
+          out=Path('live-evidence');out.mkdir(exist_ok=True)
+          report={'scope':'Live HTTPS, read-only browser verification; no real form submission; emulated mobile, not a physical device.','expectedLandingSha':expected,'expectedAppSha':expected_app,'checks':[],'metrics':[]}
+          def read(url,origin=None):
+              h={'Cache-Control':'no-cache','User-Agent':'SAMAI-approved-release-verification/1.0'}
+              if origin:h['Origin']=origin
+              with urllib.request.urlopen(urllib.request.Request(url,headers=h),timeout=15) as r:
+                  return r.status,dict(r.headers),r.read(10000000)
+          def check(name,ok):
+              report['checks'].append({'name':name,'passed':bool(ok)})
+              assert ok,name
+          try:
+              ready=False
+              for attempt in range(55):
+                  try:
+                      d=json.loads(read(site+'deployment.json?t='+str(time.time_ns()))[2])
+                      h=json.loads(read(app+'/api/health?t='+str(time.time_ns()))[2])
+                      ready=d.get('sourceSha')==expected and h.get('version')==expected_app
+                      if ready:report['deployment']=d;report['appHealth']=h;break
+                      print('Waiting for approved release:',d.get('release'),h.get('version'),flush=True)
+                  except Exception as e:print('Readiness check:',type(e).__name__,flush=True)
+                  time.sleep(20)
+              check('exact approved landing and application are live',ready)
+              manifest=json.loads(read(site+'release.json?t='+str(time.time_ns()))[2])
+              check('public manifest exact SHA',manifest['sourceSha']==expected)
+              for item in manifest['files']:
+                  status,headers,body=read(site+item['path']+'?verify='+expected)
+                  check('live file '+item['path'],status==200 and len(body)==item['bytes'] and hashlib.sha256(body).hexdigest()==item['sha256'])
+              report['readiness']=json.loads(read(app+'/api/webhooks/leads/samai-public/contact','https://samaiconsulting.ru')[2])
+              check('form server is configured',report['readiness'].get('ready') is True)
+              with sync_playwright() as p:
+                  for engine in ['chromium','firefox','webkit']:
+                      browser=getattr(p,engine).launch()
+                      ctx=browser.new_context(viewport={'width':1440,'height':1000})
+                      # All non-GET requests are blocked; no event or lead can reach production.
+                      ctx.route('**/*',lambda route:route.continue_() if route.request.method in ['GET','HEAD','OPTIONS'] else route.abort())
+                      ctx.tracing.start(screenshots=True,snapshots=True,sources=True)
+                      page=ctx.new_page();errors=[]
+                      page.on('pageerror',lambda e:errors.append(str(e)))
+                      response=page.goto(site+'?release-check='+expected,wait_until='load')
+                      page.wait_for_function('window.SamaiMotion && window.SAMAI_TRACK')
+                      check(engine+' live HTML',response.status==200)
+                      check(engine+' exact build marker',page.locator('meta[name="samai-build"]').get_attribute('content')=='05-ci-'+expected[:12])
+                      check(engine+' noindex preview','noindex' in page.locator('meta[name="robots"]').get_attribute('content'))
+                      check(engine+' logo loaded',page.locator('.brand-image').evaluate('(e)=>e.complete&&e.naturalWidth>0'))
+                      page.evaluate('window.SamaiMotion.replay("signal")')
+                      page.wait_for_function('document.querySelector("[data-assembly=\\"2\\"]").getAttribute("aria-pressed")==="true"',timeout=6000)
+                      check(engine+' assembly completes',True)
+                      page.locator('.motion-toggle').first.click()
+                      page.evaluate('window.scrollTo(0,0)');page.wait_for_timeout(200)
+                      page.screenshot(path=str(out/(engine+'-desktop.png')),full_page=True)
+                      page.locator('.hero-lower a[href="#contact"]').click()
+                      check(engine+' contact accessible',page.locator('#contact-form').is_visible())
+                      check(engine+' real consent checkbox',page.locator('#privacy-consent').count()==1)
+                      for width in [360,390,640,768,1024,1440,1920]:
+                          page.set_viewport_size({'width':width,'height':900});page.wait_for_timeout(120)
+                          check(engine+' no overflow '+str(width),page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'))
+                      page.set_viewport_size({'width':390,'height':844});page.evaluate('window.scrollTo(0,0)')
+                      page.locator('.mobile-menu>summary').click();check(engine+' mobile menu opens',page.locator('.mobile-menu').get_attribute('open') is not None)
+                      page.keyboard.press('Escape');check(engine+' menu closes',page.locator('.mobile-menu').get_attribute('open') is None)
+                      page.screenshot(path=str(out/(engine+'-mobile.png')),full_page=True)
+                      check(engine+' no runtime exception',not errors)
+                      ctx.tracing.stop(path=str(out/(engine+'-trace.zip')));ctx.close();browser.close()
+                  browser=p.chromium.launch()
+                  ctx=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
+                  ctx.route('**/*',lambda route:route.continue_() if route.request.method in ['GET','HEAD','OPTIONS'] else route.abort())
+                  page=ctx.new_page()
+                  page.add_init_script('window.__metrics={lcp:0,cls:0,longTasks:[]};new PerformanceObserver(l=>l.getEntries().forEach(e=>window.__metrics.lcp=e.startTime)).observe({type:"largest-contentful-paint",buffered:true});new PerformanceObserver(l=>l.getEntries().forEach(e=>{if(!e.hadRecentInput)window.__metrics.cls+=e.value})).observe({type:"layout-shift",buffered:true});new PerformanceObserver(l=>l.getEntries().forEach(e=>window.__metrics.longTasks.push(e.duration))).observe({type:"longtask",buffered:true});')
+                  cdp=ctx.new_cdp_session(page);cdp.send('Network.enable')
+                  cdp.send('Network.emulateNetworkConditions',{'offline':False,'latency':150,'downloadThroughput':200000,'uploadThroughput':93750,'connectionType':'cellular3g'})
+                  cdp.send('Emulation.setCPUThrottlingRate',{'rate':4})
+                  page.goto(site+'?performance-check='+expected,wait_until='load');page.wait_for_timeout(2500)
+                  report['metrics'].append({'profile':'one laboratory mobile run','viewport':[390,844],'downloadMbps':1.6,'latencyMs':150,'cpuSlowdown':4,**page.evaluate('window.__metrics')})
+                  ctx.close();browser.close()
+              report['state']='passed'
+          except Exception as e:
+              report['state']='failed';report['error']=str(e);raise
+          finally:
+              (out/'live-checks.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+              print(json.dumps({'state':report.get('state'),'checks':len(report['checks']),'metrics':report['metrics']},ensure_ascii=False))
+          PY
+      - name: Preserve live release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: samai-live-${{ github.run_id }}
+          path: live-evidence/
+          retention-days: 14
