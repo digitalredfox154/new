@@ -34,14 +34,34 @@ assert 'data:image/png;base64' not in html
 assert html.count('Демонстрация формы · данные не отправляются') == 1
 assert html.count('Предпросмотр · Форма без отправки') == 1
 
+# v07 content pass: make responsibility and next step concrete without adding
+# unsupported results, client claims or universal pricing.
+replacements = {
+    '<title>SAMAI Consulting — маркетинг в одних руках</title>': '<title>SAMAI Consulting — управление маркетингом для B2B</title>',
+    'От стратегии <br/> до внедрения.': 'Стратегия. <br/> Работа. Контроль.',
+    'Определяем, как привлекать клиентов, <br class="desktop-break"/> и организуем работу специалистов. <br class="desktop-break"/> Вам не нужно связывать подрядчиков самому.': 'Берём на себя план маркетинга, задачи <br class="desktop-break"/> и координацию подрядчиков. <br class="desktop-break"/> Вы сохраняете продуктовые и коммерческие решения.',
+    'Мы помогаем выбрать приоритеты, организовать внедрение и разобраться, что дают вложения в маркетинг.': 'Определяем приоритеты, переводим решения в задачи и собираем обратную связь по результатам — чтобы ответственность не растворялась между исполнителями.',
+    'Можно оставить внедрение своей команде. Можно передать его нам. Выбираем формат под вашу ситуацию.': 'Можно оставить внедрение своей команде, передать нам координацию подрядчиков или подключить SAMAI к управлению маркетинговой функцией.',
+    'Разбираем продукт, аудиторию и текущий маркетинг. Определяем приоритеты, готовим план и помогаем оценивать результаты внедрения.': 'Разбираем продукт, аудиторию и текущий маркетинг. Фиксируем приоритеты и решения, которые внедряет ваша команда.',
+    'Переводим решения в задачи. Ведём план, сроки и согласования. Собираем результаты, чтобы определить следующий шаг.': 'Ведём маркетинговый проект: план, задачи, подрядчиков, сроки и согласования. Собираем данные для следующего решения.',
+    'Подключаемся к стратегии, бюджету и организации работы ваших специалистов. Определяем роли и помогаем закрыть недостающие компетенции.': 'Подключаемся к стратегии, бюджету и работе маркетинговой команды в согласованных полномочиях. Фиксируем роли, приоритеты и процессы.',
+    'Нашу работу, рекламу, внешних специалистов и сервисы показываем отдельно. Сайт, дизайн и контент — в согласованном объёме, без обещания «всё включено».': 'До старта фиксируем, что входит в нашу работу, а что оплачивается отдельно: реклама, внешние специалисты, сервисы и производство материалов.',
+    '<span class="task-type">Вебинары</span><h3>Показать экспертизу. <br/> Пригласить к диалогу.</h3><p>Организуем путь от регистрации и напоминаний до материалов после эфира и консультации. Смотрим не только на регистрации, но и на встречи.</p><a class="text-link" data-service="Запуск вебинара" href="#contact">Обсудить запуск': '<span class="task-type">Экспертные проекты</span><h3>Контент ведёт <br/> к следующему шагу.</h3><p>Связываем экспертные материалы, вебинары и другие точки контакта с консультацией или следующим действием. Механику выбираем под продукт, а не заранее под один канал.</p><a class="text-link" data-service="Экспертный маркетинг" href="#contact">Обсудить воронку',
+    'Что продаёте, как находите клиентов <br/> и что хотите изменить.': 'На первом разговоре разберём продукт, <br/> текущий маркетинг и то, что хотите передать нам.',
+    'Уточним ситуацию и предложим формат работы. Полный разбор и стратегия — отдельный согласованный этап.': 'Если видим подходящий формат, фиксируем следующий шаг и состав работ. Глубокий аудит и стратегия — отдельный согласованный этап.',
+}
+for before, after in replacements.items():
+    assert html.count(before) == 1, f'Expected one v07 source fragment: {before[:80]}'
+    html = html.replace(before, after, 1)
+
 head_add = '''
 <meta name="referrer" content="strict-origin-when-cross-origin"/><meta name="theme-color" content="#000000"/>
 <link rel="canonical" href="https://samaiconsulting.ru/"/>
 <link rel="icon" type="image/png" href="assets/logo-f28c8f1a274e05ce.png"/>
 <link rel="apple-touch-icon" href="assets/logo-f28c8f1a274e05ce.png"/>
 <meta property="og:type" content="website"/><meta property="og:locale" content="ru_RU"/>
-<meta property="og:title" content="SAMAI Consulting — маркетинг в одних руках"/>
-<meta property="og:description" content="Стратегия и управление маркетингом для B2B-компаний и экспертных проектов."/>
+<meta property="og:title" content="Маркетинг. В одних руках. — SAMAI Consulting"/>
+<meta property="og:description" content="Стратегия, управление маркетинговым проектом и координация подрядчиков для B2B-компаний и экспертных проектов."/>
 <meta property="og:url" content="https://samaiconsulting.ru/"/><meta property="og:image" content="https://samaiconsulting.ru/test/assets/logo-f28c8f1a274e05ce.png"/>
 <meta name="twitter:card" content="summary"/>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"ProfessionalService","name":"Samai Consulting","legalName":"Индивидуальный предприниматель Самай Сергей Леонидович","url":"https://samaiconsulting.ru/","address":{"@type":"PostalAddress","postalCode":"420099","addressCountry":"RU","addressRegion":"Республика Татарстан","addressLocality":"Казань","streetAddress":"ул. Березовая (Щербаково), д. 9"}}</script>
@@ -60,7 +80,7 @@ html = html.replace(old_fine, 'После отправки данные испо
 html = html.replace('Для проверки формы включите JavaScript. Отправка в прототипе не подключена.', 'Для отправки заявки через сайт необходимо включить JavaScript.')
 html = html.replace('Предпросмотр · Форма без отправки', '<span class="legal-links"><a data-legal href="privacy.html">Политика данных</a><a data-legal href="consent.html">Согласие</a></span>')
 
-release = '06-ci-' + sha[:12]
+release = '07-ci-' + sha[:12]
 html, count = re.subn(r'(<meta name="samai-build" content=")[^"]+', lambda m: m[1] + release, html)
 assert count == 1, 'Missing or ambiguous build marker'
 for before, after in sorted(mapping.items(), key=lambda p: -len(p[0])):
