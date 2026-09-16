@@ -23,6 +23,8 @@ try:
       check(engine+' threshold',page.locator('.v08-threshold').count()==1)
       check(engine+' system labels',page.locator('.v08-system-labels').count()==1)
       check(engine+' prefooter',page.locator('.v08-prefooter').count()==1)
+      title=page.locator('[data-title-line="1"]').bounding_box();brand=page.locator('.brand-stage').bounding_box()
+      check(engine+' headline clear of hero object',bool(title and brand and title['x']+title['width'] <= brand['x']+8))
       tabs=page.locator('[data-v08-format]')
       check(engine+' format selector tabs',tabs.count()==3)
       check(engine+' management selected',tabs.nth(1).get_attribute('aria-selected')=='true')
