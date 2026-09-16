@@ -1,0 +1,71 @@
+name: SAMAI v06 live verification
+on:
+  push:
+    branches: [samai-landing]
+    paths: ['.github/workflows/samai-live-v06.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-live-v06:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXPECTED_SHA: 1ee0ca0be3e54ab34af91d21d4cc2d5729038579
+      EXPECTED_BUILD: 06-ci-1ee0ca0be3e5
+      EXPECTED_APP: 3efe00daa47e08f3516bf164802bd0ea4a54fecc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install browsers
+        run: |
+          pip install -r requirements-ci.txt
+          python -m playwright install --with-deps chromium firefox webkit
+      - name: Verify published bytes and live UX without submitting leads
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,urllib.request
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+          site='https://samaiconsulting.ru/test/'; app='https://app.samaiconsulting.ru'
+          sha=os.environ['EXPECTED_SHA']; build=os.environ['EXPECTED_BUILD']; expected_app=os.environ['EXPECTED_APP']
+          out=Path('live-v06');out.mkdir(exist_ok=True);checks=[]
+          def get(url,origin=None):
+            h={'Cache-Control':'no-cache','User-Agent':'SAMAI-v06-live-check/1.0'}
+            if origin:h['Origin']=origin
+            with urllib.request.urlopen(urllib.request.Request(url,headers=h),timeout=15) as r:return r.status,dict(r.headers),r.read(10_000_000)
+          def ok(name,value):checks.append({'name':name,'passed':bool(value)});assert value,name
+          deployment=json.loads(get(site+'deployment.json')[2]);manifest=json.loads(get(site+'release.json')[2]);health=json.loads(get(app+'/api/health')[2])
+          ok('exact deployment',deployment.get('sourceSha')==sha and deployment.get('release')==build)
+          ok('exact app',health.get('version')==expected_app and health.get('database')=='ready')
+          ok('exact manifest',manifest.get('sourceSha')==sha and manifest.get('release')==build)
+          for f in manifest['files']:
+            status,_,body=get(site+f['path']+'?v='+sha)
+            ok('hash '+f['path'],status==200 and len(body)==f['bytes'] and hashlib.sha256(body).hexdigest()==f['sha256'])
+          ready=json.loads(get(app+'/api/webhooks/leads/samai-public/contact','https://samaiconsulting.ru')[2]);ok('lead endpoint ready',ready.get('ready') is True)
+          with sync_playwright() as p:
+            for engine in ['chromium','firefox','webkit']:
+              browser=getattr(p,engine).launch();ctx=browser.new_context(viewport={'width':1440,'height':1000})
+              ctx.route('**/*',lambda route: route.continue_() if route.request.method in ['GET','HEAD','OPTIONS'] else route.abort())
+              page=ctx.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+              response=page.goto(site+'?live=v06',wait_until='load');page.wait_for_function('window.SamaiMotion && window.SAMAI_TRACK')
+              ok(engine+' http',response.status==200);ok(engine+' build',page.locator('meta[name="samai-build"]').get_attribute('content')==build)
+              ok(engine+' noindex','noindex' in page.locator('meta[name="robots"]').get_attribute('content'));ok(engine+' logo',page.locator('.brand-image').evaluate('(e)=>e.complete&&e.naturalWidth>0'))
+              page.evaluate('window.SamaiMotion.replay("signal")');page.wait_for_function('document.querySelector("[data-assembly=\\"2\\"]").getAttribute("aria-pressed")==="true"',timeout=6000)
+              for width in [360,390,640,768,1024,1440,1920]:
+                page.set_viewport_size({'width':width,'height':900});page.wait_for_timeout(100);ok(f'{engine} width {width}',page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'))
+              page.set_viewport_size({'width':1440,'height':1000});page.evaluate('scrollTo(0,0)');page.screenshot(path=str(out/(engine+'-desktop.png')),full_page=True)
+              page.set_viewport_size({'width':390,'height':844});page.evaluate('scrollTo(0,0)');page.screenshot(path=str(out/(engine+'-mobile.png')),full_page=True)
+              page.locator('.hero-lower a[href="#contact"]').click();ok(engine+' form',page.locator('#contact-form').is_visible() and page.locator('#privacy-consent').count()==1);ok(engine+' runtime',not errors)
+              ctx.close();browser.close()
+          (out/'report.json').write_text(json.dumps({'state':'passed','checks':checks},ensure_ascii=False,indent=2))
+          print(json.dumps({'state':'passed','checks':len(checks)}))
+          PY
+      - name: Save live evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: samai-v06-live-${{ github.run_id }}
+          path: live-v06/
+          retention-days: 14
