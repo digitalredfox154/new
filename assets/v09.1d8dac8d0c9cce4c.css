@@ -1,0 +1,14 @@
+/* SAMAI v09 — trust and mobile-readability polish. */
+.situation-statement h2{max-inline-size:15ch;text-wrap:balance}
+.evidence{background:var(--v08-paper);padding-top:88px}
+.evidence-grid{display:grid;grid-template-columns:30% 1fr;gap:7%;border-top:1px solid #b9b9b4;padding-top:34px}
+.evidence-intro h2{font-size:clamp(46px,5vw,74px);line-height:.95;letter-spacing:-.055em;margin-top:24px;max-width:8ch;text-wrap:balance}
+.evidence-intro p{max-width:360px;margin-top:28px;color:#555550;font-size:14px;line-height:1.65}
+.evidence-list{border-top:1px solid #aaa9a3}
+.evidence-list article{display:grid;grid-template-columns:64px 1fr;gap:22px;padding:29px 0 31px;border-bottom:1px solid #c2c1bb}
+.evidence-list article>span{font-size:9px;letter-spacing:.15em;color:#777772;padding-top:5px}
+.evidence-list h3{font-size:clamp(23px,2.1vw,31px);font-weight:500;letter-spacing:-.035em;line-height:1.05}
+.evidence-list p{max-width:62ch;margin-top:13px;color:#555550;font-size:14px;line-height:1.65}
+.form-fineprint{font-size:12px;line-height:1.65;max-width:58ch;color:#b8b8ae}
+@media(max-width:800px){.evidence{padding-top:68px}.evidence-grid{display:block;padding-top:24px}.evidence-intro h2{font-size:13vw;max-width:8ch}.evidence-intro p{font-size:14px}.evidence-list{margin-top:42px}.evidence-list article{grid-template-columns:40px 1fr;gap:12px;padding:24px 0}.evidence-list h3{font-size:23px}.evidence-list p{font-size:13.5px}.situation-statement h2{max-inline-size:11ch}}
+@media(max-width:640px){.motion-toggle{width:44px;height:44px}.header-inner{gap:10px}.form-fineprint{font-size:12px}}

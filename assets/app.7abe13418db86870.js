@@ -127,7 +127,7 @@
     selected.hidden=true; $('#service-value').value='';
   });
   if (form) {
-    const name = $('#name'), contact = $('#contact-value'), status = $('#form-status'), submit = $('.form-submit');
+    const name = $('#name'), contact = $('#contact-value'), status = $('#form-status');
     const memory = {telegram:'', email:'', phone:''};
     let method = 'telegram';
     const variants = {
@@ -153,24 +153,8 @@
     [name,contact].forEach(input => listen(input, 'input', () => { status.hidden=true; }));
     let formStarted=false;
     listen(form,'focusin',()=>{if(!formStarted){emit('form_start');formStarted=true;}});
-    submit.disabled=false;
-    listen(form, 'submit', event => {
-      event.preventDefault();
-      const value = contact.value.trim();
-      const nameError = name.value.trim() ? '' : 'Укажите, как к вам обращаться.';
-      let contactError='';
-      if (!value) contactError='Укажите контакт для ответа.';
-      else if (method==='telegram' && !/^(?:@|https?:\/\/t\.me\/)?[a-zA-Z][a-zA-Z0-9_]{4,31}\/?$/.test(value)) contactError='Укажите имя пользователя Telegram или ссылку на профиль.';
-      else if (method==='email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) contactError='Проверьте адрес электронной почты.';
-      else if (method==='phone' && (!/^\+?[\d\s().-]+$/.test(value) || value.replace(/\D/g,'').length<7 || value.replace(/\D/g,'').length>15)) contactError='Проверьте номер телефона и код страны.';
-      setError(name,$('#name-error'),nameError); setError(contact,$('#contact-error'),contactError);
-      status.hidden=true;
-      if (nameError || contactError) { (nameError ? name : contact).focus(); return; }
-      const title=document.createElement('strong'); title.textContent='Поля заполнены. Заявка не отправлена.';
-      const message=document.createElement('span'); message.textContent='Это демонстрация. Подключение получателя заявок — следующий этап. Введённые данные остались только в этой вкладке.';
-      status.replaceChildren(title,message); status.hidden=false;
-      emit('demo_form_validated',{method});
-    });
+    // The production transport owns validation and submission. Keep the
+    // source button disabled so a missing transport fails closed.
   }
   // The primary conversion action jumps directly to the form: no long animated scroll.
   listen(document,'click',event=>{
