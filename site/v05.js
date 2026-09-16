@@ -26,6 +26,7 @@
   },{passive:true});
   const form=$('#contact-form');if(!form)return;
   const submit=$('.form-submit',form),status=$('#form-status',form),name=$('#name',form),contact=$('#contact-value',form),consent=$('#privacy-consent',form),website=$('#website',form),submitLabel=$('span',submit);
+  submit.disabled=false;
   const setStatus=(kind,title,message)=>{
     const strong=document.createElement('strong');strong.textContent=title;
     const span=document.createElement('span');span.textContent=message;
