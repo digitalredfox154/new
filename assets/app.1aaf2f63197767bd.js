@@ -191,12 +191,6 @@
   // Header and one narrative scene; no scroll interception or continuous rendering.
   configureScene();
   if (document.fonts) document.fonts.ready.then(()=>{ measureScene(); schedule(); });
-  // Load the chosen Cyrillic-capable family non-blockingly. It remains optional.
-  const fontLink=document.createElement('link');
-  fontLink.rel='stylesheet';
-  fontLink.href='https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&display=swap';
-  fontLink.addEventListener('load',()=>{ if(document.fonts)document.fonts.ready.then(()=>{measureScene();schedule();}); },{once:true});
-  document.head.append(fontLink);
   window.__SAMAI_PROTOTYPE__ = {
     version:'03',
     getVariant:()=>'a',
