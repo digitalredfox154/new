@@ -13,8 +13,12 @@ css_path='assets/'+css[0].name
 js_path='assets/'+js[0].name
 assert css_path not in html and js_path not in html
 # Deliberate editorial contrast: keep the promise large, but reserve a clean
-# architectural field for the physical SAMAI mark on desktop/tablet.
-hero_fit='<style>@media(min-width:801px){.a-title-stage h1>span+span{font-size:.61em;letter-spacing:-.045em}}</style>'
+# architectural field for the physical SAMAI mark on desktop/tablet. Tablet
+# widths need a smaller, higher object so the visual plate never crosses copy.
+hero_fit='''<style>
+@media(min-width:801px){.a-title-stage h1>span+span{font-size:.61em;letter-spacing:-.045em}}
+@media(min-width:801px) and (max-width:1150px){.hero-a .brand-stage{width:282px;height:304px;top:-112px;right:-2px}.brand-assembly{inset:18px 28px 38px}}
+</style>'''
 html=html.replace('</head>',f'<link rel="stylesheet" href="{css_path}">\n{hero_fit}\n</head>',1)
 html=html.replace('</body>',f'<script src="{js_path}"></script>\n</body>',1)
 assert '07-ci-' in html
