@@ -12,7 +12,9 @@ assert len(css)==1 and len(js)==1, (css,js)
 css_path='assets/'+css[0].name
 js_path='assets/'+js[0].name
 assert css_path not in html and js_path not in html
-hero_fit='<style>@media(min-width:801px){.a-title-stage h1>span+span{font-size:.80em}}</style>'
+# Deliberate editorial contrast: keep the promise large, but reserve a clean
+# architectural field for the physical SAMAI mark on desktop/tablet.
+hero_fit='<style>@media(min-width:801px){.a-title-stage h1>span+span{font-size:.61em;letter-spacing:-.045em}}</style>'
 html=html.replace('</head>',f'<link rel="stylesheet" href="{css_path}">\n{hero_fit}\n</head>',1)
 html=html.replace('</body>',f'<script src="{js_path}"></script>\n</body>',1)
 assert '07-ci-' in html
