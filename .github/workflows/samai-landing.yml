@@ -1,7 +1,7 @@
 name: SAMAI landing checks and release
 on:
   push:
-    branches: [samai-landing, samai-landing-v05, samai-landing-v06, samai-landing-v07, samai-landing-v08, samai-landing-v09, samai-landing-v10-copy]
+    branches: [samai-landing, samai-landing-v05, samai-landing-v06, samai-landing-v07, samai-landing-v08, samai-landing-v09, samai-landing-v10-copy, samai-landing-v11-trust]
     paths: ['site/**', 'tools/**', '.github/workflows/samai-landing.yml', 'requirements-ci.txt']
 permissions:
   contents: read
@@ -32,7 +32,7 @@ jobs:
           pip install -r requirements-ci.txt
           python -m playwright install --with-deps chromium firefox webkit
       - name: Build exact commit
-        run: python tools/build_v10.py
+        run: python tools/build_v11.py
       - name: Hemingway-style Russian content gate
         run: python tools/content_gate.py
       - name: Mandatory Chromium, Firefox and WebKit browser gate
@@ -41,6 +41,8 @@ jobs:
         run: python tools/v08_gate.py
       - name: Focused v09 trust and mobile polish gate
         run: python tools/v09_gate.py
+      - name: Focused v11 trust and conversion gate
+        run: python tools/v11_gate.py
       - name: Save checks screenshots and traces
         if: always()
         uses: actions/upload-artifact@v4

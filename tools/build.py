@@ -48,7 +48,7 @@ head_add = '''
 <link rel="stylesheet" href="v05.css"><link rel="stylesheet" href="v06.css">'''
 html = html.replace('</head>', head_add + '\n</head>', 1)
 html = html.replace('</body>', '<script src="v05.js"></script>\n</body>', 1)
-html = html.replace('Демонстрация формы · данные не отправляются', 'Оставьте контакт. Ответит руководитель проекта.')
+html = html.replace('Демонстрация формы · данные не отправляются', 'Оставьте имя и удобный контакт. Ответит руководитель проекта.')
 
 button = '<button class="button button-light form-submit" disabled="" type="submit">'
 assert html.count(button) == 1
