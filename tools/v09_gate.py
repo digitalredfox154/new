@@ -1,5 +1,5 @@
 """Focused v09 trust, responsive typography and fail-closed form checks."""
-import functools, http.server, json, os, threading
+import functools, http.server, json, os, re, threading
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
@@ -21,7 +21,8 @@ try:
       response=page.goto('http://127.0.0.1:8767/',wait_until='load')
       page.wait_for_function('window.SamaiV08 && window.SAMAI_TRACK')
       check(engine+' HTTP',response.status==200)
-      check(engine+' v09 build marker',page.locator('meta[name="samai-build"]').get_attribute('content').startswith('09-ci-'))
+      marker=page.locator('meta[name="samai-build"]').get_attribute('content') or ''
+      check(engine+' post-v09 build marker',bool(re.fullmatch(r'\d{2}-ci-[0-9a-f]{12}',marker)) and int(marker[:2])>=9,marker)
       check(engine+' evidence section',page.locator('#evidence-heading').count()==1)
       check(engine+' evidence items',page.locator('.evidence-list article').count()==3)
       check(engine+' production form enabled',not page.locator('.form-submit').is_disabled())

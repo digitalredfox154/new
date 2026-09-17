@@ -1,7 +1,7 @@
 name: SAMAI landing checks and release
 on:
   push:
-    branches: [samai-landing, samai-landing-v05, samai-landing-v06, samai-landing-v07, samai-landing-v08, samai-landing-v09]
+    branches: [samai-landing, samai-landing-v05, samai-landing-v06, samai-landing-v07, samai-landing-v08, samai-landing-v09, samai-landing-v10-copy]
     paths: ['site/**', 'tools/**', '.github/workflows/samai-landing.yml', 'requirements-ci.txt']
 permissions:
   contents: read
@@ -32,7 +32,9 @@ jobs:
           pip install -r requirements-ci.txt
           python -m playwright install --with-deps chromium firefox webkit
       - name: Build exact commit
-        run: python tools/build_v09.py
+        run: python tools/build_v10.py
+      - name: Hemingway-style Russian content gate
+        run: python tools/content_gate.py
       - name: Mandatory Chromium, Firefox and WebKit browser gate
         run: python tools/browser_gate.py
       - name: Focused v08 cinematic and selector regression gate
