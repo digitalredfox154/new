@@ -10,6 +10,6 @@ REG uses a narrowly scoped pull agent: HTTPS read-only GitHub access, exact work
 
 Only `/test/` is authorized. The form submits through the allowlisted SAMAI endpoint with consent, idempotency and retry-safe delivery; it stays disabled if the production transport is unavailable. Search indexing stays disabled. Production promotion to `/` requires separate approval.
 
-Local checks: Python 3.12+, Node 22, `pip install -r requirements-ci.txt`, `python -m playwright install --with-deps chromium firefox webkit`, `python tools/build_v10.py`, `python tools/content_gate.py`, `python tools/browser_gate.py`, `python tools/v08_gate.py`, `python tools/v09_gate.py`.
+Local checks: Python 3.12+, Node 22, `pip install -r requirements-ci.txt`, `python -m playwright install --with-deps chromium firefox webkit`, `python tools/build_v11.py`, `python tools/content_gate.py`, `python tools/browser_gate.py`, `python tools/v08_gate.py`, `python tools/v09_gate.py`, `python tools/v11_gate.py`.
 
 Operational caveat: the scoped Remote Desktop container has no service manager or crontab. The pull agent can run continuously there, but automatic restart after container/host reboot requires the host administrator to add a supervised service. Do not claim reboot resilience before that is configured.
