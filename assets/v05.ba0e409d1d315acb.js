@@ -56,7 +56,7 @@
     if(!checked.ok){checked.first?.focus();track('form_submit_error',{stage:'validation'});return}
     const content={name:name.value.trim(),method:checked.method,contact:contact.value.trim(),company:$('#company',form)?.value.trim()||'',task:$('#task',form)?.value.trim()||'',service:$('#service-value',form)?.value||'',website:website?.value||'',pageUrl,referrer,utm,consent:true,consentVersion:CONSENT_VERSION};
     const nextSignature=JSON.stringify(content);
-    if(acceptedSignature===nextSignature){setStatus('success','Заявка отправлена.','Это обращение уже принято. Повторная заявка не создавалась.');return}
+    if(acceptedSignature===nextSignature){setStatus('success','Заявка уже отправлена.','Мы не создали повторную заявку.');return}
     if(signature&&signature!==nextSignature)submitKey=randomKey();
     signature=nextSignature;
     const payload={...content,idempotencyKey:submitKey};
@@ -68,12 +68,12 @@
       if(!response.ok||body.ok!==true||body.accepted!==true)throw new Error(typeof body.error==='string'?body.error:'Не удалось отправить заявку.');
       acceptedSignature=nextSignature;
       track('form_submit_success',{method:checked.method,service:content.service,notification:body.notification||'accepted'});
-      setStatus('success','Заявка отправлена.','Обращение сохранено в SAMAI. Ответственный руководитель свяжется с вами указанным способом.');
+      setStatus('success','Заявка отправлена.','Руководитель проекта свяжется с вами выбранным способом.');
       // Keep the chosen contact method and data visible; do not reset another
       // script's method state or create a new lead on a repeated click.
     }catch(error){
       const uncertain=error?.name==='TimeoutError'||error?.name==='TypeError';
-      setStatus('error',uncertain?'Не удалось подтвердить отправку.':'Заявка не отправлена.',uncertain?'Проверьте соединение и повторите отправку. Для тех же данных сохраняется номер попытки.':(error instanceof Error?error.message:'Повторите попытку.'));
+      setStatus('error',uncertain?'Не удалось подтвердить отправку.':'Заявка не отправлена.',uncertain?'Проверьте интернет и попробуйте ещё раз. Повторная отправка не создаст вторую заявку.':(error instanceof Error?error.message:'Повторите попытку.'));
       track('form_submit_error',{stage:'transport'});
     }finally{pending(false)}
   },true);

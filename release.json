@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "release": "09-ci-a03c4a7dd6b8",
-  "sourceSha": "a03c4a7dd6b8fef4019a063e303281eda9355acb",
+  "release": "10-ci-a359dc17af57",
+  "sourceSha": "a359dc17af5757c44c81f3dd85ea49aefdd4c418",
   "repository": "digitalredfox154/new",
   "sourceBranch": "samai-landing",
-  "runId": 35103634056,
+  "runId": 35176983025,
   "runAttempt": 1,
   "target": "/test/",
   "files": [
@@ -29,19 +29,19 @@
       "bytes": 14630
     },
     {
-      "path": "assets/v04.df80923164b00737.js",
-      "sha256": "df80923164b007371b09accf90783fac7128bb76d0137d8f9e13dac24bf62033",
-      "bytes": 12910
-    },
-    {
-      "path": "assets/v05.7e1a8e12bebd1161.js",
-      "sha256": "7e1a8e12bebd116166e4ad808c44653955f6d4dd68ece5e2498c54430d2ae76f",
-      "bytes": 7185
+      "path": "assets/v04.54e4e8c2bf8e11a1.js",
+      "sha256": "54e4e8c2bf8e11a1b5f6f786cd8dfd9255b056d8f9f606a4cc6889d8c1b107f9",
+      "bytes": 12859
     },
     {
       "path": "assets/v05.8f60d639c52c8fc2.css",
       "sha256": "8f60d639c52c8fc2be767682d7ef423dde498c4ca96d5211a25e0cc9efb5ee32",
       "bytes": 3681
+    },
+    {
+      "path": "assets/v05.ba0e409d1d315acb.js",
+      "sha256": "ba0e409d1d315acb9d05befc482e01e481f7c5fab19f9b4bdb38992273336560",
+      "bytes": 7076
     },
     {
       "path": "assets/v06.9f02ae3bc0c7491c.css",
@@ -54,9 +54,9 @@
       "bytes": 15424
     },
     {
-      "path": "assets/v08.1e23dda6370fdb32.js",
-      "sha256": "1e23dda6370fdb3292992be4cf49decf846cd65bbc8916e2c28bc5dbaf963f18",
-      "bytes": 7095
+      "path": "assets/v08.4c2bcd95e214f6fb.js",
+      "sha256": "4c2bcd95e214f6fbf8895e7462cf24427a6480b065bf9c273b410a3c5317fed7",
+      "bytes": 7002
     },
     {
       "path": "assets/v09.1d8dac8d0c9cce4c.css",
@@ -70,8 +70,8 @@
     },
     {
       "path": "index.html",
-      "sha256": "be34d80c720a3f5e4ae2794da30add0edf52024a4a4beab8d783fc718eaeefee",
-      "bytes": 37454
+      "sha256": "b24ef0a1af3cf8f03235eda6dccc494b8ab3f6559fb0a1a6e4945fa308984907",
+      "bytes": 35683
     },
     {
       "path": "privacy.html",

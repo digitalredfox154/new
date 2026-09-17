@@ -50,7 +50,7 @@
   function footerTransition(){
     const contact=$('#contact');if(!contact||$('.v08-prefooter'))return;
     prefooter=document.createElement('section');prefooter.className='v08-prefooter';prefooter.setAttribute('aria-label','Переход к обсуждению проекта');
-    prefooter.innerHTML='<div class="wrap v08-prefooter-inner"><span class="v08-prefooter-kicker">SAMAI / рабочий контур</span><h2><span>Стратегия становится</span><span>управлением.</span></h2><p class="v08-prefooter-meta">Определяем приоритеты, связываем исполнителей и фиксируем следующий шаг. Если задача требует другой зоны ответственности — скажем об этом до старта.</p><i class="v08-prefooter-rule" aria-hidden="true"></i></div>';
+    prefooter.innerHTML='<div class="wrap v08-prefooter-inner"><span class="v08-prefooter-kicker">SAMAI / от плана к работе</span><h2><span>План идёт</span><span>в работу.</span></h2><p class="v08-prefooter-meta">Ставим приоритеты, назначаем ответственных и проверяем результат. Если задача не наша, говорим об этом до старта.</p><i class="v08-prefooter-rule" aria-hidden="true"></i></div>';
     contact.parentNode.insertBefore(prefooter,contact);
   }
   function tick(){
