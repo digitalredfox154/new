@@ -1,72 +1,42 @@
 {
   "schema": 1,
-  "release": "11-ci-5d69b2a86523",
-  "sourceSha": "5d69b2a86523d125b4fc838e8a82ea57965770ae",
+  "release": "12-ci-2184d0c3fe5f",
+  "sourceSha": "2184d0c3fe5fb470ad577e447243a99b491857be",
   "repository": "digitalredfox154/new",
   "sourceBranch": "samai-landing",
-  "runId": 35207298346,
+  "runId": 37036133393,
   "runAttempt": 1,
   "target": "/test/",
   "files": [
     {
-      "path": "assets/app.7abe13418db86870.js",
-      "sha256": "7abe13418db86870674ea82af82adc03f6dba1990da595f360a6fd983b8b6fba",
-      "bytes": 8531
+      "path": "assets/index-BAREf8jK.css",
+      "sha256": "e8adf96a2bbf931bf4afb342ac51f79342760e1aa8b9b9bb84e363ff51a967f2",
+      "bytes": 48166
     },
     {
-      "path": "assets/base.d17cb5b68083b16a.css",
-      "sha256": "d17cb5b68083b16a506b13aa513d19a455920a5f30a9ca6b8bd7e078bd04da8f",
-      "bytes": 46393
+      "path": "assets/index-DGbBUbpy.js",
+      "sha256": "24ca8eeac13da98401588099b394cda64430478bc4b768ef302c1d75ba347497",
+      "bytes": 32138
     },
     {
-      "path": "assets/logo-f28c8f1a274e05ce.f28c8f1a274e05ce.png",
+      "path": "assets/motion-a3sj5zmn.js",
+      "sha256": "11f2be75561459741488a454669fb26b048799f90e44d4fee6288c765734b1a8",
+      "bytes": 114013
+    },
+    {
+      "path": "assets/samai-logo.png",
       "sha256": "f28c8f1a274e05ced57a1ffb14db75e4b51d796b4788fe859f2a3d362ca1298c",
       "bytes": 457422
     },
     {
-      "path": "assets/v04.541ffc155ef1fc7f.css",
-      "sha256": "541ffc155ef1fc7f99a0bfe051f21bccd86766f36aba3a49d2e82d9d62abde29",
-      "bytes": 14630
+      "path": "assets/three-core-CMELNRvO.js",
+      "sha256": "cff9f3637c2c7f0dc4ac512485112e11a38a10bb7532a90e2255646120deae78",
+      "bytes": 501628
     },
     {
-      "path": "assets/v04.54e4e8c2bf8e11a1.js",
-      "sha256": "54e4e8c2bf8e11a1b5f6f786cd8dfd9255b056d8f9f606a4cc6889d8c1b107f9",
-      "bytes": 12859
-    },
-    {
-      "path": "assets/v05.8f60d639c52c8fc2.css",
-      "sha256": "8f60d639c52c8fc2be767682d7ef423dde498c4ca96d5211a25e0cc9efb5ee32",
-      "bytes": 3681
-    },
-    {
-      "path": "assets/v05.ba0e409d1d315acb.js",
-      "sha256": "ba0e409d1d315acb9d05befc482e01e481f7c5fab19f9b4bdb38992273336560",
-      "bytes": 7076
-    },
-    {
-      "path": "assets/v06.9f02ae3bc0c7491c.css",
-      "sha256": "9f02ae3bc0c7491c49d33124ae3657e73f288ac898eea09ec5b32deff2ffd4e6",
-      "bytes": 7022
-    },
-    {
-      "path": "assets/v08.050bcdaf33bbaca4.css",
-      "sha256": "050bcdaf33bbaca4e2b23af9d7a4d5d0707b3ebfabf4654ebc20e87583d7b55d",
-      "bytes": 15424
-    },
-    {
-      "path": "assets/v08.4c2bcd95e214f6fb.js",
-      "sha256": "4c2bcd95e214f6fbf8895e7462cf24427a6480b065bf9c273b410a3c5317fed7",
-      "bytes": 7002
-    },
-    {
-      "path": "assets/v09.1d8dac8d0c9cce4c.css",
-      "sha256": "1d8dac8d0c9cce4c3a7bb1f7182349670bc52f57c9d4fb2e6ddc6ebb8312a1f2",
-      "bytes": 1592
-    },
-    {
-      "path": "assets/v11.de3eced8dbfedb12.css",
-      "sha256": "de3eced8dbfedb12905093231839e8753dadbc32132ffd553e06b60a2378f9d8",
-      "bytes": 2027
+      "path": "assets/three-extras-DWsUt3Iu.js",
+      "sha256": "ac68947a01521a5ebb288be9b0243260d4f5c56090998601f16d09d92547343a",
+      "bytes": 22090
     },
     {
       "path": "consent.html",
@@ -75,8 +45,8 @@
     },
     {
       "path": "index.html",
-      "sha256": "0e1f6ac210e6a3cc20f11c1f2e3fd82ed71c22d189d04caa3f41373eec4a83f1",
-      "bytes": 37176
+      "sha256": "75e2bc70096864c018a6759831f6243c5fe1383d79f84aa36e395471b18fcf94",
+      "bytes": 21773
     },
     {
       "path": "privacy.html",
