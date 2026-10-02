@@ -9,7 +9,9 @@ git config user.name 'github-actions[bot]'
 git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 if git ls-remote --exit-code --heads origin samai-landing-releases >/dev/null 2>&1; then
   git fetch origin samai-landing-releases
-  git checkout --detach FETCH_HEAD
+  # This checkout is disposable and may contain files that differ from the
+  # unrelated release history. Force the switch before replacing its tree.
+  git checkout --force --detach FETCH_HEAD
 else
   git checkout --orphan samai-release-initial
 fi
