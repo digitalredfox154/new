@@ -1,3 +1,4 @@
+# Exact-head CI verification after conflict resolution
 name: SAMAI landing checks and release
 on:
   push:
