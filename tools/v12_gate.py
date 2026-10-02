@@ -105,6 +105,7 @@ try:
                 wait_until="load",
             )
             page.wait_for_function("window.SAMAI_TRACK && document.documentElement.classList.contains('is-ready')")
+            page.wait_for_timeout(100)
             print(engine + ": loaded", flush=True)
             check(engine + " HTTP", response.status == 200)
             check(engine + " noindex", "noindex" in (page.locator('meta[name="robots"]').get_attribute("content") or ""))
@@ -121,6 +122,7 @@ try:
             check(engine + " proof caveat", "бронь ≠ закрытая сделка" in body_copy)
             check(engine + " forbidden agency copy absent", "агентский договор" not in body_text.lower())
             check(engine + " forbidden supplier copy absent", "напрямую поставщику" not in body_text.lower())
+            check(engine + " page view event", any(item.get("event") == "page_view" for item in events))
 
             for progress, label in [(0.0, "hero"), (0.4, "criteria"), (0.66, "handoff"), (0.82, "rules"), (0.91, "proof"), (1.0, "pilot")]:
                 print(engine + ": " + label, flush=True)
@@ -139,7 +141,10 @@ try:
             pilot_cta.wait_for(state="visible")
             check(engine + " pilot CTA visible", pilot_cta.is_visible())
             page.locator("[data-open-dialog]").click()
+            page.wait_for_timeout(100)
             check(engine + " dialog opens", page.locator(".lead-dialog").evaluate("dialog => dialog.open"))
+            check(engine + " form open event", any(item.get("event") == "form_open" and item.get("properties", {}).get("source") == "pilot" for item in events))
+            check(engine + " semantic CTA event", any(item.get("event") == "cta_click" and item.get("properties", {}).get("source") == "pilot" and item.get("properties", {}).get("target") == "form" for item in events))
             form = page.locator("#contact-form")
             check(engine + " transport enables submit", not form.locator(".form-submit").is_disabled())
             form.locator("#name").fill("Тест сборки")
@@ -185,8 +190,12 @@ try:
             serialized_events = json.dumps(events, ensure_ascii=False)
             check(engine + " analytics excludes PII", "Тест сборки" not in serialized_events and "+7 999" not in serialized_events)
             check(engine + " conversion event", any(item.get("event") == "form_submit_success" for item in events))
+            check(engine + " requested volume event", any(item.get("event") == "form_submit_success" and item.get("properties", {}).get("requestedVolume") == 20 for item in events))
+            check(engine + " story stage event", any(item.get("event") == "story_stage_view" and item.get("properties", {}).get("stage") == 8 for item in events))
 
             form.locator(".dialog-close").click()
+            page.wait_for_timeout(100)
+            check(engine + " form close event", any(item.get("event") == "form_close" and item.get("properties", {}).get("source") == "pilot" for item in events))
             for width in [360, 390, 423, 768, 1024, 1440, 1920]:
                 page.set_viewport_size({"width": width, "height": 844 if width < 800 else 900})
                 page.wait_for_timeout(120)

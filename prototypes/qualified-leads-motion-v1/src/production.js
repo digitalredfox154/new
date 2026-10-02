@@ -72,7 +72,14 @@ export const initLeadCapture = ({ form, emitEvent }) => {
 
   window.addEventListener("samai:event", (event) => {
     const detail = event.detail || {};
-    if (detail.name === "cta_click") track("cta_click", { placement: detail.source === "header" ? 0 : 1 });
+    if (detail.name === "cta_click") track("cta_click", {
+      placement: detail.source === "header" ? 0 : 1,
+      source: detail.source,
+      target: detail.target,
+    });
+    if (detail.name === "story_stage_view") track("story_stage_view", { stage: detail.stage });
+    if (detail.name === "form_open") track("form_open", { source: detail.source });
+    if (detail.name === "form_close") track("form_close", { source: detail.source });
     if (detail.name === "motion_pause") track("motion_toggle", { mode: "off" });
     if (detail.name === "motion_resume") track("motion_toggle", { mode: "cinematic" });
   });
@@ -131,7 +138,7 @@ export const initLeadCapture = ({ form, emitEvent }) => {
     if (formStarted) return;
     formStarted = true;
     emitEvent("form_start", { source: "pilot" });
-    track("form_start");
+    track("form_start", { source: "pilot" });
   });
   [name, contact, city, segment, volume].forEach((input) => input.addEventListener("input", () => { status.hidden = true; }));
 
@@ -176,7 +183,7 @@ export const initLeadCapture = ({ form, emitEvent }) => {
     const payload = { ...content, idempotencyKey: submitKey };
     pending(true);
     emitEvent("form_submit_attempt", { source: "pilot", requestedVolume });
-    track("form_submit_attempt", { method: checked.method, service: content.service });
+    track("form_submit_attempt", { method: checked.method, service: content.service, requestedVolume });
     try {
       if (!liveTransport()) throw new Error("Форма доступна только на сайте SAMAI.");
       const response = await jsonFetch("/contact", payload);
@@ -185,7 +192,7 @@ export const initLeadCapture = ({ form, emitEvent }) => {
         throw new Error(typeof body.error === "string" ? body.error : "Не удалось отправить заявку.");
       }
       acceptedSignature = nextSignature;
-      track("form_submit_success", { method: checked.method, service: content.service, notification: body.notification || "accepted" });
+      track("form_submit_success", { method: checked.method, service: content.service, notification: body.notification || "accepted", requestedVolume });
       setStatus("success", "Заявка отправлена.", "Свяжемся с вами и согласуем критерии теста.");
     } catch (error) {
       const uncertain = error?.name === "TimeoutError" || error?.name === "TypeError";

@@ -531,7 +531,7 @@ const initScene = () => {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.01;
-  textureDensity = window.innerWidth < 800 ? 1.25 : 1.5;
+  textureDensity = window.innerWidth < 800 ? 1 : 1.5;
   textureAnisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 
   const scene = new THREE.Scene();
@@ -858,7 +858,7 @@ const initScene = () => {
     camera.aspect = width / height;
     camera.fov = viewportMobile ? 43 : 36;
     camera.updateProjectionMatrix();
-    const pixelRatio = Math.min(window.devicePixelRatio, viewportMobile ? 1.45 : 1.85);
+    const pixelRatio = Math.min(window.devicePixelRatio, viewportMobile ? 1.3 : 1.85);
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(width, height, false);
     composer.setPixelRatio(pixelRatio);
@@ -906,9 +906,16 @@ const initScene = () => {
   const clock = new THREE.Clock();
   const current = new THREE.Vector3();
   let motionTime = 0;
+  let lastParticleProgress = -1;
+  let lastUiProgress = -1;
+  let lastUiMobile = null;
 
   const render = () => {
     const delta = Math.min(clock.getDelta(), 0.05);
+    if (document.hidden) {
+      frameHandle = requestAnimationFrame(render);
+      return;
+    }
     if (!paused) motionTime += delta;
     if (fullMotion) {
       const response = viewportMobile ? 12 : 8;
@@ -1051,32 +1058,40 @@ const initScene = () => {
     pilotPlane.rotation.z = (1 - pilotVisibility) * -0.08;
     setPlaneOpacity(pilotPlane, 0);
 
-    const positionAttribute = particleGeometry.attributes.position;
-    const colorAttribute = particleGeometry.attributes.color;
-    for (let index = 0; index < particleCount; index += 1) {
-      current.copy(starts[index]).lerp(ordered[index], order);
-      current.lerp(rings[index], criteria);
-      current.lerp(handoffPoints[index], handoff);
-      current.lerp(replacementPoints[index], Math.max(protocolPhase, replace));
-      current.lerp(proofPoints[index], proof);
-      current.lerp(pilotPoints[index], pilot);
-      if (!paused && progress < 0.12) {
-        current.x += Math.sin(motionTime * 0.22 + index) * 0.022;
-        current.y += Math.cos(motionTime * 0.18 + index * 0.7) * 0.022;
+    const animateParticles = !paused && progress < 0.12;
+    if (animateParticles || Math.abs(progress - lastParticleProgress) > 0.00001) {
+      const positionAttribute = particleGeometry.attributes.position;
+      const colorAttribute = particleGeometry.attributes.color;
+      for (let index = 0; index < particleCount; index += 1) {
+        current.copy(starts[index]).lerp(ordered[index], order);
+        current.lerp(rings[index], criteria);
+        current.lerp(handoffPoints[index], handoff);
+        current.lerp(replacementPoints[index], Math.max(protocolPhase, replace));
+        current.lerp(proofPoints[index], proof);
+        current.lerp(pilotPoints[index], pilot);
+        if (animateParticles) {
+          current.x += Math.sin(motionTime * 0.22 + index) * 0.022;
+          current.y += Math.cos(motionTime * 0.18 + index * 0.7) * 0.022;
+        }
+        positionAttribute.setXYZ(index, current.x, current.y, current.z);
+        const brightness = accepted[index] ? mix(0.86, 1, Math.max(proof, pilot)) : mix(0.58, 0.035, order);
+        const color = accepted[index] ? lime : warmWhite;
+        colorAttribute.setXYZ(index, color.r * brightness, color.g * brightness, color.b * brightness);
       }
-      positionAttribute.setXYZ(index, current.x, current.y, current.z);
-      const brightness = accepted[index] ? mix(0.86, 1, Math.max(proof, pilot)) : mix(0.58, 0.035, order);
-      const color = accepted[index] ? lime : warmWhite;
-      colorAttribute.setXYZ(index, color.r * brightness, color.g * brightness, color.b * brightness);
+      positionAttribute.needsUpdate = true;
+      colorAttribute.needsUpdate = true;
+      lastParticleProgress = progress;
     }
-    positionAttribute.needsUpdate = true;
-    colorAttribute.needsUpdate = true;
     particleMaterial.opacity = 0.48 + (1 - custom) * 0.18 + proof * 0.08 + pilot * 0.12;
     stars.rotation.z = motionTime * 0.002;
 
-    updateStoryUi(progress, viewportMobile);
+    if (Math.abs(progress - lastUiProgress) > 0.00005 || viewportMobile !== lastUiMobile) {
+      updateStoryUi(progress, viewportMobile);
+      lastUiProgress = progress;
+      lastUiMobile = viewportMobile;
+    }
 
-    if (!document.hidden) composer.render();
+    composer.render();
     if (!ready) {
       ready = true;
       requestAnimationFrame(() => root.classList.add("is-ready"));
@@ -1138,7 +1153,9 @@ motionControl.addEventListener("click", () => {
   emitEvent(paused ? "motion_pause" : "motion_resume");
 });
 
+let activeDialogSource = "";
 const openLeadDialog = (source) => {
+  activeDialogSource = source;
   emitEvent("form_open", { source });
   dialog.showModal();
 };
@@ -1167,4 +1184,9 @@ initLeadCapture({ form: leadForm, emitEvent });
 document.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
 dialog.addEventListener("click", (event) => {
   if (event.target === dialog) dialog.close();
+});
+dialog.addEventListener("close", () => {
+  if (!activeDialogSource) return;
+  emitEvent("form_close", { source: activeDialogSource });
+  activeDialogSource = "";
 });
