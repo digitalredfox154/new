@@ -50,7 +50,7 @@ const hud = {
   pilotScore: document.querySelector('[data-hud-score="pilot"]'),
 };
 
-const state = { progress: 0 };
+const state = { progress: 0, targetProgress: 0 };
 let paused = false;
 let ready = false;
 let frameHandle = 0;
@@ -711,6 +711,20 @@ const initScene = () => {
   composer.addPass(new OutputPass());
 
   let viewportMobile = window.innerWidth < 800;
+  let storyStart = story.offsetTop;
+  let storyDistance = Math.max(1, story.offsetHeight - window.innerHeight);
+
+  const syncScrollProgress = () => {
+    if (!fullMotion) return;
+    state.targetProgress = clamp((window.scrollY - storyStart) / storyDistance);
+  };
+
+  const measureStory = () => {
+    storyStart = story.offsetTop;
+    storyDistance = Math.max(1, story.offsetHeight - window.innerHeight);
+    syncScrollProgress();
+  };
+
   const resize = () => {
     viewportMobile = window.innerWidth < 800;
     const width = window.innerWidth;
@@ -724,9 +738,11 @@ const initScene = () => {
     composer.setPixelRatio(pixelRatio);
     composer.setSize(width, height);
     bloom.setSize(width, height);
+    measureStory();
   };
   resize();
   window.addEventListener("resize", resize, { passive: true });
+  window.addEventListener("scroll", syncScrollProgress, { passive: true });
 
   const pointer = new THREE.Vector2();
   const pointerTarget = new THREE.Vector2();
@@ -768,6 +784,14 @@ const initScene = () => {
   const render = () => {
     const delta = Math.min(clock.getDelta(), 0.05);
     if (!paused) motionTime += delta;
+    if (fullMotion) {
+      const response = viewportMobile ? 12 : 8;
+      const smoothing = 1 - Math.exp(-response * delta);
+      state.progress = mix(state.progress, state.targetProgress, smoothing);
+      if (Math.abs(state.progress - state.targetProgress) < 0.0001) {
+        state.progress = state.targetProgress;
+      }
+    }
     const progress = fullMotion ? state.progress : 0;
 
     const order = smooth(0.1, 0.29, progress);
@@ -1007,33 +1031,34 @@ const initScene = () => {
   frameHandle = requestAnimationFrame(render);
 
   if (fullMotion) {
-    gsap.to(state, {
-      progress: 1,
-      ease: "none",
-      scrollTrigger: {
-        trigger: story,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: viewportMobile ? 0.35 : 0.8,
-        snap: {
-          snapTo: checkpoints,
-          duration: viewportMobile ? { min: 0.12, max: 0.28 } : { min: 0.18, max: 0.48 },
-          delay: viewportMobile ? 0.06 : 0.12,
-          ease: "power2.inOut",
-          inertia: false,
-          directional: false,
-        },
-        invalidateOnRefresh: true,
+    ScrollTrigger.create({
+      trigger: story,
+      start: "top top",
+      end: "bottom bottom",
+      snap: {
+        snapTo: checkpoints,
+        duration: viewportMobile ? { min: 0.12, max: 0.28 } : { min: 0.18, max: 0.48 },
+        delay: viewportMobile ? 0.06 : 0.12,
+        ease: "power2.inOut",
+        inertia: false,
+        directional: false,
       },
+      invalidateOnRefresh: true,
     });
   }
 
-  window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true });
-  document.fonts?.ready.then(() => ScrollTrigger.refresh());
+  const refreshStory = () => {
+    measureStory();
+    ScrollTrigger.refresh();
+  };
+  window.addEventListener("load", refreshStory, { once: true });
+  document.fonts?.ready.then(refreshStory);
 
   return () => {
     cancelAnimationFrame(frameHandle);
     window.removeEventListener("resize", resize);
+    window.removeEventListener("scroll", syncScrollProgress);
+    window.removeEventListener("load", refreshStory);
     ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     renderer.dispose();
     composer.dispose();
