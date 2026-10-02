@@ -78,6 +78,9 @@ def story_progress(page, progress):
         }""",
         progress,
     )
+    if progress >= 0.999:
+        page.keyboard.press("End")
+        page.mouse.wheel(0, 100000)
     page.wait_for_timeout(1100)
 
 
@@ -129,6 +132,10 @@ try:
                 page.screenshot(path=artifacts / f"{engine}-{label}.png")
 
             pilot_cta = page.locator("[data-open-dialog]")
+            check(
+                engine + " reached story end",
+                page.evaluate("scrollY >= document.documentElement.scrollHeight - innerHeight - 2"),
+            )
             pilot_cta.wait_for(state="visible")
             check(engine + " pilot CTA visible", pilot_cta.is_visible())
             page.locator("[data-open-dialog]").click()
