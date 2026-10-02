@@ -1,5 +1,13 @@
 dist/
+node_modules/
+.vite/
 artifacts/
 release-store/
 __pycache__/
+.artifact-build/
+outputs/
+prototypes/qualified-leads-motion-v1/dist/
+.qa-python/
+.playwright-browsers/
+prototypes/qualified-leads-motion-v1/qa/
 *.pyc
