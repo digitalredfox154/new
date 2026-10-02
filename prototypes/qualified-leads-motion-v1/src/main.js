@@ -23,6 +23,8 @@ const fallback = document.querySelector(".webgl-fallback");
 const dialog = document.querySelector(".lead-dialog");
 const leadForm = document.querySelector(".lead-form");
 const fullMotion = root.dataset.motion === "full";
+const forceTestFallback = window.__SAMAI_TEST_TRANSPORT === true
+  && new URLSearchParams(window.location.search).get("fallback") === "1";
 
 const copy = {
   hero: document.querySelector(".copy--hero"),
@@ -90,6 +92,90 @@ const setHudElement = (element, opacity, y = 0, scale = 1) => {
   element.style.visibility = opacity < 0.012 ? "hidden" : "visible";
   element.style.setProperty("--hud-y", `${y}px`);
   element.style.setProperty("--hud-scale", String(scale));
+};
+
+const updateStoryUi = (progress, viewportMobile) => {
+  const scoreVisibility = envelope(progress, 0.36, 0.395, 0.47, 0.515);
+  const customScoreVisibility = envelope(progress, 0.5, 0.55, 0.6, 0.66);
+  const handoffVisibility = envelope(progress, 0.61, 0.66, 0.68, 0.708);
+  const handoffEnter = smooth(0.61, 0.67, progress);
+  const protocolVisibility = envelope(progress, 0.69, 0.715, 0.755, 0.78);
+  const protocolEnter = smooth(0.69, 0.72, progress);
+  const caseVisibility = envelope(progress, 0.86, 0.89, 0.925, 0.952);
+  const caseEnter = smooth(0.86, 0.895, progress);
+  const pilotVisibility = smooth(0.94, 0.975, progress);
+
+  hud.criteria.forEach((card, index) => {
+    const enter = smooth(0.295 + index * 0.012, 0.345 + index * 0.012, progress);
+    const visibility = enter * (1 - smooth(0.465, 0.515, progress));
+    const direction = index < 2 ? -1 : 1;
+    setHudElement(card, visibility, direction * 18 * (1 - enter), mix(0.955, 1, enter));
+  });
+  setHudElement(hud.criteriaScore, scoreVisibility, 12 * (1 - scoreVisibility), mix(0.94, 1, scoreVisibility));
+
+  hud.custom.forEach((card, index) => {
+    const enter = smooth(0.475 + index * 0.012, 0.515 + index * 0.012, progress);
+    const visibility = enter * (1 - smooth(0.6, 0.66, progress));
+    setHudElement(card, visibility, (index < 2 ? -16 : 16) * (1 - enter), mix(0.955, 1, enter));
+  });
+  setHudElement(hud.customScore, customScoreVisibility, 12 * (1 - customScoreVisibility), mix(0.94, 1, customScoreVisibility));
+
+  setHudElement(hud.lead, handoffVisibility, 22 * (1 - handoffEnter), mix(0.955, 1, handoffEnter));
+  hud.transfer.style.opacity = String(handoffVisibility * 0.82);
+  hud.transfer.style.visibility = handoffVisibility < 0.012 ? "hidden" : "visible";
+  hud.transfer.style.setProperty("--transfer-scale", String(mix(0.35, 1, handoffEnter)));
+
+  setHudElement(hud.protocol, protocolVisibility, 18 * (1 - protocolEnter), mix(0.965, 1, protocolEnter));
+  hud.protocolSteps.forEach((step, index) => {
+    const enter = smooth(0.695 + index * 0.007, 0.718 + index * 0.007, progress);
+    step.style.opacity = String(enter);
+    step.style.transform = `translate3d(${14 * (1 - enter)}px, 0, 0)`;
+  });
+
+  hud.replace.forEach((card, index) => {
+    const enter = smooth(0.78 + index * 0.006, 0.805 + index * 0.006, progress);
+    const visibility = enter * (1 - smooth(0.855, 0.89, progress));
+    setHudElement(card, visibility, (index < 2 ? -15 : 15) * (1 - enter), mix(0.955, 1, enter));
+  });
+  setHudElement(hud.case, caseVisibility, 20 * (1 - caseEnter), mix(0.96, 1, caseEnter));
+  hud.case.style.setProperty("--hud-x", `${(viewportMobile ? 18 : 34) * (1 - caseEnter)}px`);
+  const roomEnter = smooth(0.875, 0.91, progress);
+  hud.caseRoom.style.opacity = String(caseVisibility * roomEnter);
+  hud.caseRoom.style.transform = `translate3d(${26 * (1 - roomEnter)}px, 0, 0)`;
+  setHudElement(hud.pilotScore, pilotVisibility, 14 * (1 - pilotVisibility), mix(0.94, 1, pilotVisibility));
+
+  const heroVisibility = 1 - smooth(0.075, 0.15, progress);
+  const criteriaCopyVisibility = envelope(progress, 0.285, 0.325, 0.4, 0.455);
+  const customCopyVisibility = envelope(progress, 0.455, 0.49, 0.565, 0.595);
+  const handoffCopyVisibility = envelope(progress, 0.595, 0.63, 0.68, 0.715);
+  const replaceCopyVisibility = viewportMobile
+    ? envelope(progress, 0.715, 0.745, 0.758, 0.79)
+    : envelope(progress, 0.715, 0.745, 0.83, 0.86);
+  const replaceReasonsCopyVisibility = viewportMobile ? envelope(progress, 0.77, 0.795, 0.83, 0.86) : 0;
+  const proofCopyVisibility = envelope(progress, 0.855, 0.885, 0.92, 0.948);
+  const pilotCopyVisibility = smooth(0.94, 0.975, progress);
+  setCopy(copy.hero, heroVisibility, -14 * (1 - heroVisibility), mix(1, 0.96, 1 - heroVisibility));
+  setCopy(copy.criteria, criteriaCopyVisibility, 10 * (1 - criteriaCopyVisibility), mix(0.97, 1, criteriaCopyVisibility));
+  setCopy(copy.custom, customCopyVisibility, 10 * (1 - customCopyVisibility), mix(0.97, 1, customCopyVisibility));
+  setCopy(copy.handoff, handoffCopyVisibility, 10 * (1 - handoffCopyVisibility), mix(0.97, 1, handoffCopyVisibility));
+  setCopy(copy.replace, replaceCopyVisibility, 10 * (1 - replaceCopyVisibility), mix(0.97, 1, replaceCopyVisibility));
+  setCopy(copy.replaceReasons, replaceReasonsCopyVisibility, 10 * (1 - replaceReasonsCopyVisibility), mix(0.97, 1, replaceReasonsCopyVisibility));
+  setCopy(copy.proof, proofCopyVisibility, 10 * (1 - proofCopyVisibility), mix(0.97, 1, proofCopyVisibility));
+  setCopy(copy.pilot, pilotCopyVisibility, 12 * (1 - pilotCopyVisibility), mix(0.965, 1, pilotCopyVisibility));
+  scrollCue.style.opacity = String(1 - smooth(0.02, 0.08, progress));
+
+  const chapterIndex = progress < 0.12 ? 0 : progress < 0.29 ? 1 : progress < 0.455 ? 2 : progress < 0.595 ? 3 : progress < 0.715 ? 4 : progress < 0.86 ? 5 : progress < 0.945 ? 6 : 7;
+  const chapterNames = ["ВВОДНАЯ", "ОТБОР", "БАЗОВЫЕ КРИТЕРИИ", "ВАШИ КРИТЕРИИ", "КАРТОЧКА ЛИДА", "ПРАВИЛА РАБОТЫ", "РЕЗУЛЬТАТ", "ТЕСТ"];
+  const chapter = String(chapterIndex + 1).padStart(2, "0");
+  if (activeChapter !== chapterIndex) {
+    activeChapter = chapterIndex;
+    stageNumber.textContent = chapter;
+    stageLabel.textContent = chapterNames[chapterIndex];
+    if (!seenChapters.has(chapterIndex)) {
+      seenChapters.add(chapterIndex);
+      emitEvent("story_stage_view", { stage: chapterIndex + 1, label: chapterNames[chapterIndex] });
+    }
+  }
 };
 
 const roundedRect = (context, x, y, width, height, radius) => {
@@ -391,8 +477,36 @@ const setPlaneOpacity = (plane, opacity) => {
 
 const startFallback = () => {
   fallback.hidden = false;
+  fallback.querySelector("p")?.setAttribute("hidden", "");
+  root.classList.add("webgl-fallback-active");
   root.classList.add("is-ready");
   canvas.hidden = true;
+
+  let viewportMobile = window.innerWidth < 800;
+  let storyStart = story.offsetTop;
+  let storyDistance = Math.max(1, story.offsetHeight - window.innerHeight);
+
+  const renderFallback = () => {
+    const progress = fullMotion ? clamp((window.scrollY - storyStart) / storyDistance) : 0;
+    state.progress = progress;
+    state.targetProgress = progress;
+    updateStoryUi(progress, viewportMobile);
+    fallback.style.setProperty("--fallback-turn", `${progress * 220}deg`);
+    fallback.style.setProperty("--fallback-scale", String(mix(0.82, 1.08, smooth(0.08, 1, progress))));
+  };
+
+  const measureFallback = () => {
+    viewportMobile = window.innerWidth < 800;
+    storyStart = story.offsetTop;
+    storyDistance = Math.max(1, story.offsetHeight - window.innerHeight);
+    renderFallback();
+  };
+
+  window.addEventListener("scroll", renderFallback, { passive: true });
+  window.addEventListener("resize", measureFallback, { passive: true });
+  window.addEventListener("load", measureFallback, { once: true });
+  document.fonts?.ready.then(measureFallback);
+  measureFallback();
 };
 
 const initScene = () => {
@@ -925,45 +1039,6 @@ const initScene = () => {
     pilotPlane.rotation.z = (1 - pilotVisibility) * -0.08;
     setPlaneOpacity(pilotPlane, 0);
 
-    hud.criteria.forEach((card, index) => {
-      const enter = smooth(0.295 + index * 0.012, 0.345 + index * 0.012, progress);
-      const visibility = enter * (1 - smooth(0.465, 0.515, progress));
-      const direction = index < 2 ? -1 : 1;
-      setHudElement(card, visibility, direction * 18 * (1 - enter), mix(0.955, 1, enter));
-    });
-    setHudElement(hud.criteriaScore, scoreVisibility, 12 * (1 - scoreVisibility), mix(0.94, 1, scoreVisibility));
-
-    hud.custom.forEach((card, index) => {
-      const enter = smooth(0.475 + index * 0.012, 0.515 + index * 0.012, progress);
-      const visibility = enter * (1 - smooth(0.6, 0.66, progress));
-      setHudElement(card, visibility, (index < 2 ? -16 : 16) * (1 - enter), mix(0.955, 1, enter));
-    });
-    setHudElement(hud.customScore, customScoreVisibility, 12 * (1 - customScoreVisibility), mix(0.94, 1, customScoreVisibility));
-
-    setHudElement(hud.lead, handoffVisibility, 22 * (1 - handoffEnter), mix(0.955, 1, handoffEnter));
-    hud.transfer.style.opacity = String(handoffVisibility * 0.82);
-    hud.transfer.style.visibility = handoffVisibility < 0.012 ? "hidden" : "visible";
-    hud.transfer.style.setProperty("--transfer-scale", String(mix(0.35, 1, handoffEnter)));
-
-    setHudElement(hud.protocol, protocolVisibility, 18 * (1 - protocolEnter), mix(0.965, 1, protocolEnter));
-    hud.protocolSteps.forEach((step, index) => {
-      const enter = smooth(0.695 + index * 0.007, 0.718 + index * 0.007, progress);
-      step.style.opacity = String(enter);
-      step.style.transform = `translate3d(${14 * (1 - enter)}px, 0, 0)`;
-    });
-
-    hud.replace.forEach((card, index) => {
-      const enter = smooth(0.78 + index * 0.006, 0.805 + index * 0.006, progress);
-      const visibility = enter * (1 - smooth(0.855, 0.89, progress));
-      setHudElement(card, visibility, (index < 2 ? -15 : 15) * (1 - enter), mix(0.955, 1, enter));
-    });
-    setHudElement(hud.case, caseVisibility, 20 * (1 - caseEnter), mix(0.96, 1, caseEnter));
-    hud.case.style.setProperty("--hud-x", `${(viewportMobile ? 18 : 34) * (1 - caseEnter)}px`);
-    const roomEnter = smooth(0.875, 0.91, progress);
-    hud.caseRoom.style.opacity = String(caseVisibility * roomEnter);
-    hud.caseRoom.style.transform = `translate3d(${26 * (1 - roomEnter)}px, 0, 0)`;
-    setHudElement(hud.pilotScore, pilotVisibility, 14 * (1 - pilotVisibility), mix(0.94, 1, pilotVisibility));
-
     const positionAttribute = particleGeometry.attributes.position;
     const colorAttribute = particleGeometry.attributes.color;
     for (let index = 0; index < particleCount; index += 1) {
@@ -987,38 +1062,7 @@ const initScene = () => {
     particleMaterial.opacity = 0.48 + (1 - custom) * 0.18 + proof * 0.08 + pilot * 0.12;
     stars.rotation.z = motionTime * 0.002;
 
-    const heroVisibility = 1 - smooth(0.075, 0.15, progress);
-    const criteriaCopyVisibility = envelope(progress, 0.285, 0.325, 0.4, 0.455);
-    const customCopyVisibility = envelope(progress, 0.455, 0.49, 0.565, 0.595);
-    const handoffCopyVisibility = envelope(progress, 0.595, 0.63, 0.68, 0.715);
-    const replaceCopyVisibility = viewportMobile
-      ? envelope(progress, 0.715, 0.745, 0.758, 0.79)
-      : envelope(progress, 0.715, 0.745, 0.83, 0.86);
-    const replaceReasonsCopyVisibility = viewportMobile ? envelope(progress, 0.77, 0.795, 0.83, 0.86) : 0;
-    const proofCopyVisibility = envelope(progress, 0.855, 0.885, 0.92, 0.948);
-    const pilotCopyVisibility = smooth(0.94, 0.975, progress);
-    setCopy(copy.hero, heroVisibility, -14 * (1 - heroVisibility), mix(1, 0.96, 1 - heroVisibility));
-    setCopy(copy.criteria, criteriaCopyVisibility, 10 * (1 - criteriaCopyVisibility), mix(0.97, 1, criteriaCopyVisibility));
-    setCopy(copy.custom, customCopyVisibility, 10 * (1 - customCopyVisibility), mix(0.97, 1, customCopyVisibility));
-    setCopy(copy.handoff, handoffCopyVisibility, 10 * (1 - handoffCopyVisibility), mix(0.97, 1, handoffCopyVisibility));
-    setCopy(copy.replace, replaceCopyVisibility, 10 * (1 - replaceCopyVisibility), mix(0.97, 1, replaceCopyVisibility));
-    setCopy(copy.replaceReasons, replaceReasonsCopyVisibility, 10 * (1 - replaceReasonsCopyVisibility), mix(0.97, 1, replaceReasonsCopyVisibility));
-    setCopy(copy.proof, proofCopyVisibility, 10 * (1 - proofCopyVisibility), mix(0.97, 1, proofCopyVisibility));
-    setCopy(copy.pilot, pilotCopyVisibility, 12 * (1 - pilotCopyVisibility), mix(0.965, 1, pilotCopyVisibility));
-    scrollCue.style.opacity = String(1 - smooth(0.02, 0.08, progress));
-
-    const chapterIndex = progress < 0.12 ? 0 : progress < 0.29 ? 1 : progress < 0.455 ? 2 : progress < 0.595 ? 3 : progress < 0.715 ? 4 : progress < 0.86 ? 5 : progress < 0.945 ? 6 : 7;
-    const chapterNames = ["ВВОДНАЯ", "ОТБОР", "БАЗОВЫЕ КРИТЕРИИ", "ВАШИ КРИТЕРИИ", "КАРТОЧКА ЛИДА", "ПРАВИЛА РАБОТЫ", "РЕЗУЛЬТАТ", "ТЕСТ"];
-    const chapter = String(chapterIndex + 1).padStart(2, "0");
-    if (activeChapter !== chapterIndex) {
-      activeChapter = chapterIndex;
-      stageNumber.textContent = chapter;
-      stageLabel.textContent = chapterNames[chapterIndex];
-      if (!seenChapters.has(chapterIndex)) {
-        seenChapters.add(chapterIndex);
-        emitEvent("story_stage_view", { stage: chapterIndex + 1, label: chapterNames[chapterIndex] });
-      }
-    }
+    updateStoryUi(progress, viewportMobile);
 
     if (!document.hidden) composer.render();
     if (!ready) {
@@ -1067,9 +1111,10 @@ const initScene = () => {
 };
 
 try {
-  initScene();
+  if (forceTestFallback) startFallback();
+  else initScene();
 } catch (error) {
-  console.error("WebGL scene failed", error);
+  console.warn("WebGL scene unavailable; using the dynamic fallback", error);
   startFallback();
 }
 

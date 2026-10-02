@@ -218,6 +218,23 @@ try:
             reduced_page.screenshot(path=artifacts / f"{engine}-mobile-reduced.png")
             print(engine + ": reduced complete", flush=True)
             reduced.close()
+
+            if engine == "chromium":
+                fallback_context = browser.new_context(viewport={"width": 1440, "height": 900})
+                fallback_context.add_init_script("window.__SAMAI_TEST_TRANSPORT=true")
+                install_api_routes(fallback_context, [], [], {"fail": False})
+                fallback_page = fallback_context.new_page()
+                fallback_page.goto("http://127.0.0.1:8765/?motion=full&fallback=1", wait_until="load")
+                fallback_page.wait_for_function("document.documentElement.classList.contains('webgl-fallback-active')")
+                story_progress(fallback_page, 1.0)
+                fallback_cta = fallback_page.locator("[data-open-dialog]")
+                fallback_cta.wait_for(state="visible")
+                check("dynamic fallback CTA visible", fallback_cta.is_visible())
+                check("dynamic fallback final chapter", fallback_page.locator(".stage-index__current").inner_text() == "08")
+                fallback_page.screenshot(path=artifacts / "chromium-dynamic-fallback.png")
+                print("chromium: fallback complete", flush=True)
+                fallback_context.close()
+
             browser.close()
 except Exception:
     errors.append(traceback.format_exc())

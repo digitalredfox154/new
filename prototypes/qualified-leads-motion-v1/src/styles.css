@@ -431,7 +431,10 @@ button { color: inherit; }
 .is-ready .loading { opacity: 0; visibility: hidden; pointer-events: none; }
 .webgl-fallback { position: absolute; z-index: 5; inset: 0; display: grid; place-content: center; justify-items: center; gap: 32px; text-align: center; }
 .webgl-fallback[hidden] { display: none; }
-.fallback-core { width: min(54vw, 480px); aspect-ratio: 1; border: 1px solid rgba(191,255,82,.5); border-radius: 50%; box-shadow: 0 0 80px rgba(191,255,82,.08), inset 0 0 80px rgba(191,255,82,.04); }
+.fallback-core { --fallback-turn: 0deg; --fallback-scale: .82; position: relative; width: min(54vw, 480px); aspect-ratio: 1; border: 1px solid rgba(191,255,82,.5); border-radius: 50%; box-shadow: 0 0 80px rgba(191,255,82,.08), inset 0 0 80px rgba(191,255,82,.04); transform: rotate(var(--fallback-turn)) scale(var(--fallback-scale)); will-change: transform; }
+.fallback-core::before, .fallback-core::after { content: ""; position: absolute; border-radius: 50%; border: 1px solid rgba(243,243,237,.12); }
+.fallback-core::before { inset: 13%; border-color: rgba(191,255,82,.22); }
+.fallback-core::after { inset: 29%; border-style: dashed; }
 .webgl-fallback p { max-width: 29ch; margin: 0; font-size: clamp(28px, 5vw, 64px); line-height: 1; letter-spacing: -.055em; }
 
 .lead-dialog { width: min(620px, calc(100vw - 30px)); max-height: calc(100svh - 30px); padding: 0; overflow: auto; border: 1px solid rgba(243,243,237,.18); border-radius: 26px; background: rgba(8,10,6,.94); color: var(--bone); box-shadow: 0 40px 160px rgba(0,0,0,.75); backdrop-filter: blur(28px); }
