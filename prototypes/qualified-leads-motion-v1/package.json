@@ -1,0 +1,19 @@
+{
+  "name": "samai-qualified-leads-motion-v1",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@10.17.1",
+  "scripts": {
+    "dev": "vite --configLoader runner --host 127.0.0.1",
+    "build": "vite build --configLoader runner",
+    "preview": "vite preview --configLoader runner --host 127.0.0.1"
+  },
+  "dependencies": {
+    "gsap": "^3.13.0",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.7"
+  }
+}

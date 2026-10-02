@@ -1,8 +1,8 @@
 name: SAMAI landing checks and release
 on:
   push:
-    branches: [samai-landing, samai-landing-v05, samai-landing-v06, samai-landing-v07, samai-landing-v08, samai-landing-v09, samai-landing-v10-copy, samai-landing-v11-trust]
-    paths: ['site/**', 'tools/**', '.github/workflows/samai-landing.yml', 'requirements-ci.txt']
+    branches: [samai-landing, samai-landing-v05, samai-landing-v06, samai-landing-v07, samai-landing-v08, samai-landing-v09, samai-landing-v10-copy, samai-landing-v11-trust, samai-qualified-leads-v12]
+    paths: ['site/**', 'prototypes/qualified-leads-motion-v1/**', 'tools/**', '.github/workflows/samai-landing.yml', 'requirements-ci.txt']
 permissions:
   contents: read
 concurrency:
@@ -16,9 +16,15 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+          run_install: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: pnpm
+          cache-dependency-path: prototypes/qualified-leads-motion-v1/pnpm-lock.yaml
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -27,22 +33,23 @@ jobs:
           for file in site/*.js; do
             node --check "$file"
           done
+          for file in prototypes/qualified-leads-motion-v1/src/*.js; do
+            node --check "$file"
+          done
+      - name: Install qualified-leads build dependencies
+        run: pnpm --dir prototypes/qualified-leads-motion-v1 install --frozen-lockfile
       - name: Install browser gate
         run: |
           pip install -r requirements-ci.txt
           python -m playwright install --with-deps chromium firefox webkit
       - name: Build exact commit
-        run: python tools/build_v11.py
+        run: |
+          pnpm --dir prototypes/qualified-leads-motion-v1 run build
+          python tools/build_v12.py
       - name: Hemingway-style Russian content gate
         run: python tools/content_gate.py
-      - name: Mandatory Chromium, Firefox and WebKit browser gate
-        run: python tools/browser_gate.py
-      - name: Focused v08 cinematic and selector regression gate
-        run: python tools/v08_gate.py
-      - name: Focused v09 trust and mobile polish gate
-        run: python tools/v09_gate.py
-      - name: Focused v11 trust and conversion gate
-        run: python tools/v11_gate.py
+      - name: Mandatory v12 Chromium, Firefox and WebKit release gate
+        run: python tools/v12_gate.py
       - name: Save checks screenshots and traces
         if: always()
         uses: actions/upload-artifact@v4
