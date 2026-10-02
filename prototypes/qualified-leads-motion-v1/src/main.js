@@ -26,6 +26,18 @@ const fullMotion = root.dataset.motion === "full";
 const forceTestFallback = window.__SAMAI_TEST_TRANSPORT === true
   && new URLSearchParams(window.location.search).get("fallback") === "1";
 
+const supportsWebGl2 = () => {
+  try {
+    const probe = document.createElement("canvas");
+    const context = probe.getContext("webgl2", { failIfMajorPerformanceCaveat: false });
+    if (!context) return false;
+    context.getExtension("WEBGL_lose_context")?.loseContext();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const copy = {
   hero: document.querySelector(".copy--hero"),
   criteria: document.querySelector(".copy--criteria"),
@@ -1111,7 +1123,7 @@ const initScene = () => {
 };
 
 try {
-  if (forceTestFallback) startFallback();
+  if (forceTestFallback || !supportsWebGl2()) startFallback();
   else initScene();
 } catch (error) {
   console.warn("WebGL scene unavailable; using the dynamic fallback", error);
