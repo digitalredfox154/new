@@ -119,7 +119,7 @@ try:
             check(engine + " forbidden agency copy absent", "агентский договор" not in body_text.lower())
             check(engine + " forbidden supplier copy absent", "напрямую поставщику" not in body_text.lower())
 
-            for progress, label in [(0.0, "hero"), (0.4, "criteria"), (0.66, "handoff"), (0.82, "rules"), (0.91, "proof"), (0.98, "pilot")]:
+            for progress, label in [(0.0, "hero"), (0.4, "criteria"), (0.66, "handoff"), (0.82, "rules"), (0.91, "proof"), (1.0, "pilot")]:
                 print(engine + ": " + label, flush=True)
                 story_progress(page, progress)
                 visible_copy = page.locator(".copy").evaluate_all(
@@ -128,7 +128,9 @@ try:
                 check(engine + " single message " + label, visible_copy <= 1)
                 page.screenshot(path=artifacts / f"{engine}-{label}.png")
 
-            check(engine + " pilot CTA visible", page.locator("[data-open-dialog]").is_visible())
+            pilot_cta = page.locator("[data-open-dialog]")
+            pilot_cta.wait_for(state="visible")
+            check(engine + " pilot CTA visible", pilot_cta.is_visible())
             page.locator("[data-open-dialog]").click()
             check(engine + " dialog opens", page.locator(".lead-dialog").evaluate("dialog => dialog.open"))
             form = page.locator("#contact-form")
@@ -183,8 +185,9 @@ try:
                 page.wait_for_timeout(120)
                 check(engine + " no overflow " + str(width), page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"))
             page.set_viewport_size({"width": 390, "height": 844})
-            story_progress(page, 0.98)
-            check(engine + " mobile pilot visible", page.locator("[data-open-dialog]").is_visible())
+            story_progress(page, 1.0)
+            pilot_cta.wait_for(state="visible")
+            check(engine + " mobile pilot visible", pilot_cta.is_visible())
             page.screenshot(path=artifacts / f"{engine}-mobile-pilot.png")
             page.locator("[data-open-dialog]").click()
             check(engine + " mobile dialog fits", page.locator(".lead-dialog").evaluate("dialog => dialog.getBoundingClientRect().width <= innerWidth"))
