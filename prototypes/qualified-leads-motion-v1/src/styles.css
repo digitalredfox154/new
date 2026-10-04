@@ -1059,8 +1059,16 @@ button { color: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html:not([data-motion="full"]) .story { height: 100svh; }
   html:not([data-motion="full"]) .scroll-cue { display: none; }
+  html:not([data-motion="full"]) .motion-control { display: none; }
+  html:not([data-motion="full"]) .copy,
+  html:not([data-motion="full"]) .hud-card,
+  html:not([data-motion="full"]) .hud-score,
+  html:not([data-motion="full"]) .hud-lead,
+  html:not([data-motion="full"]) .hud-transfer,
+  html:not([data-motion="full"]) .hud-protocol,
+  html:not([data-motion="full"]) .hud-case,
+  html:not([data-motion="full"]) .primary-cta { transition: none; }
   html:not([data-motion="full"]) .scroll-cue > i::after,
   html:not([data-motion="full"]) .loading i::after { animation: none; }
 }
