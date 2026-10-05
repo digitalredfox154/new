@@ -220,7 +220,13 @@ try:
             reduced_page = reduced.new_page()
             reduced_page.goto("http://127.0.0.1:8765/", wait_until="load")
             reduced_page.wait_for_function("document.documentElement.classList.contains('is-ready')")
-            check(engine + " reduced mode", reduced_page.locator("html").get_attribute("data-motion") == "reduced")
+            check(
+                engine + " campaign motion remains full under OS reduced preference",
+                reduced_page.locator("html").get_attribute("data-motion") == "full",
+            )
+            reduced_page.goto("http://127.0.0.1:8765/?motion=reduced", wait_until="load")
+            reduced_page.wait_for_function("document.documentElement.classList.contains('is-ready')")
+            check(engine + " explicit reduced mode", reduced_page.locator("html").get_attribute("data-motion") == "reduced")
             check(engine + " reduced hero visible", reduced_page.locator("h1").is_visible())
             check(engine + " reduced no overflow", reduced_page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"))
             check(engine + " reduced story scrollable", reduced_page.evaluate("document.documentElement.scrollHeight > innerHeight * 5"))
