@@ -83,6 +83,10 @@ const emitEvent = (name, detail = {}) => {
 
 const checkpoints = [0, 0.21, 0.395, 0.555, 0.665, 0.735, 0.825, 0.905, 0.975, 1];
 
+const reducedMotionProgress = (progress) => checkpoints.reduce((closest, checkpoint) =>
+  Math.abs(checkpoint - progress) < Math.abs(closest - progress) ? checkpoint : closest,
+checkpoints[0]);
+
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const mix = (from, to, amount) => from + (to - from) * amount;
 const smooth = (from, to, value) => {
@@ -499,7 +503,8 @@ const startFallback = () => {
   let storyDistance = Math.max(1, story.offsetHeight - window.innerHeight);
 
   const renderFallback = () => {
-    const progress = fullMotion ? clamp((window.scrollY - storyStart) / storyDistance) : 0;
+    const scrollProgress = clamp((window.scrollY - storyStart) / storyDistance);
+    const progress = fullMotion ? scrollProgress : reducedMotionProgress(scrollProgress);
     state.progress = progress;
     state.targetProgress = progress;
     updateStoryUi(progress, viewportMobile);
@@ -841,7 +846,6 @@ const initScene = () => {
   let storyDistance = Math.max(1, story.offsetHeight - window.innerHeight);
 
   const syncScrollProgress = () => {
-    if (!fullMotion) return;
     state.targetProgress = clamp((window.scrollY - storyStart) / storyDistance);
   };
 
@@ -873,6 +877,7 @@ const initScene = () => {
   const pointer = new THREE.Vector2();
   const pointerTarget = new THREE.Vector2();
   window.addEventListener("pointermove", (event) => {
+    if (!fullMotion) return;
     pointerTarget.x = event.clientX / window.innerWidth - 0.5;
     pointerTarget.y = event.clientY / window.innerHeight - 0.5;
   }, { passive: true });
@@ -916,7 +921,7 @@ const initScene = () => {
       frameHandle = requestAnimationFrame(render);
       return;
     }
-    if (!paused) motionTime += delta;
+    if (!paused && fullMotion) motionTime += delta;
     if (fullMotion) {
       const response = viewportMobile ? 12 : 8;
       const smoothing = 1 - Math.exp(-response * delta);
@@ -924,8 +929,10 @@ const initScene = () => {
       if (Math.abs(state.progress - state.targetProgress) < 0.0001) {
         state.progress = state.targetProgress;
       }
+    } else {
+      state.progress = reducedMotionProgress(state.targetProgress);
     }
-    const progress = fullMotion ? state.progress : 0;
+    const progress = state.progress;
 
     const order = smooth(0.1, 0.29, progress);
     const criteria = smooth(0.27, 0.46, progress);
