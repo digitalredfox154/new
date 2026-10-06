@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "release": "12-ci-271b5526c4c4",
-  "sourceSha": "271b5526c4c49b8fb796efaa954f5c2e94294dfb",
+  "release": "12-ci-94600e3af5f7",
+  "sourceSha": "94600e3af5f7dfc2390d7231a4d233984ddb6c22",
   "repository": "digitalredfox154/new",
   "sourceBranch": "samai-landing",
-  "runId": 37310862957,
+  "runId": 37366539269,
   "runAttempt": 2,
   "target": "/test/",
   "files": [
@@ -45,8 +45,8 @@
     },
     {
       "path": "index.html",
-      "sha256": "313a9366b0c39a1fff15f0bcfec2158b928c92e9014d2c16a86fee26732b909d",
-      "bytes": 21773
+      "sha256": "5159147aacc9e94c19966eb5a7c7617c912b533fef463e944b9c0d59f82f3c5c",
+      "bytes": 21868
     },
     {
       "path": "privacy.html",

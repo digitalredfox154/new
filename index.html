@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,nofollow" />
-    <meta name="samai-build" content="12-ci-271b5526c4c4" />
+    <meta name="samai-build" content="12-ci-94600e3af5f7" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="theme-color" content="#050604" />
     <meta name="description" content="Квалифицированные лиды для агентств новостроек — по критериям заказчика." />
@@ -24,9 +24,11 @@
       (() => {
         const root = document.documentElement;
         const requested = new URLSearchParams(location.search).get("motion");
-        const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
         root.classList.replace("no-js", "js");
-        root.dataset.motion = requested === "reduced" ? "reduced" : requested === "full" || !reduced ? "full" : "reduced";
+        // This campaign is built around the scroll story, so keep the complete
+        // experience as the default. Visitors can still request the accessible,
+        // discrete version explicitly with ?motion=reduced.
+        root.dataset.motion = requested === "reduced" ? "reduced" : "full";
       })();
     </script>
     <script type="module" crossorigin src="./assets/index-Z2woaLbl.js"></script>
