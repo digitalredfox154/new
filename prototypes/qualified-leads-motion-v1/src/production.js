@@ -131,7 +131,7 @@ export const initLeadCapture = ({ form, emitEvent }) => {
     busy = value;
     submit.disabled = value || !liveTransport();
     form.setAttribute("aria-busy", String(value));
-    submitLabel.textContent = value ? "Отправляем…" : "Обсудить критерии";
+    submitLabel.textContent = value ? "Отправляем…" : "Согласовать критерии теста";
   };
   submit.disabled = !liveTransport();
   form.addEventListener("focusin", () => {
