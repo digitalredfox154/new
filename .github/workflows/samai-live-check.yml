@@ -106,7 +106,11 @@ jobs:
                       page.locator('.dialog-close').click()
                       page.locator('.lead-dialog').wait_for(state='hidden')
                       for width in [360,390,640,768,1024,1440,1920]:
-                          page.set_viewport_size({'width':width,'height':900});page.evaluate('window.scrollTo(0,0)');page.wait_for_timeout(250)
+                          page.set_viewport_size({'width':width,'height':900})
+                          page.evaluate('window.scrollTo(0,0)')
+                          # Full motion intentionally eases back from chapter 08. Wait for
+                          # the observable UI state instead of racing it with a fixed delay.
+                          page.locator('#hero-title').wait_for(state='visible',timeout=3000)
                           check(engine+' no overflow '+str(width),page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'))
                           check(engine+' headline remains readable '+str(width),page.locator('#hero-title').is_visible())
                       page.set_viewport_size({'width':390,'height':844});page.evaluate('window.scrollTo(0,document.documentElement.scrollHeight)')
