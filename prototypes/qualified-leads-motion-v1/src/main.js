@@ -536,8 +536,8 @@ const initScene = () => {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.01;
-  textureDensity = window.innerWidth < 800 ? 1 : 1.5;
-  textureAnisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  textureDensity = window.innerWidth < 800 ? 0.8 : 1;
+  textureAnisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x050604);
@@ -675,52 +675,29 @@ const initScene = () => {
   const orderPanel = makePanel({ width: 5.35, height: 2.08, texture: createOrderTexture() });
   scene.add(orderPanel);
 
-  const criteriaData = [
-    { index: "01", label: "География", main: "Москва / регионы", note: "условие задано" },
-    { index: "02", label: "Бюджет", main: "От 10 / от 6 млн ₽", note: "порог подтверждён" },
-    { index: "03", label: "Срок покупки", main: "До 3 месяцев", note: "срок подтверждён" },
-    { index: "04", label: "Готовность", main: "Деньги на покупку", note: "подтверждено" },
-  ];
-  const criteriaPanels = criteriaData.map((item) => {
-    const panel = makePanel({ width: 2.72, height: 1.24, texture: createCriterionTexture(item) });
-    scene.add(panel);
-    return panel;
-  });
-
-  const scorePlane = makePlane({ width: 2.5, height: 1.67, texture: createScoreTexture() });
-  scene.add(scorePlane);
-
-  const customData = [
-    { index: "A", label: "Тип объекта", value: "Ваш сегмент" },
-    { index: "B", label: "Район / ЖК", value: "Ваша география" },
-    { index: "C", label: "Способ оплаты", value: "Ваши условия" },
-    { index: "D", label: "Исключения", value: "Ваш стоп-лист" },
-  ];
-  const customPanels = customData.map((item) => {
-    const panel = makePanel({ width: 2.42, height: 0.94, texture: createChipTexture(item), depth: 0.12 });
-    scene.add(panel);
-    return panel;
-  });
-  const customScorePlane = makePlane({ width: 2.35, height: 1.57, texture: createCustomScoreTexture() });
-  scene.add(customScorePlane);
-
-  const leadPanel = makePanel({ width: 5.4, height: 3.46, texture: createLeadTexture(), depth: 0.18 });
-  scene.add(leadPanel);
-
-  const replacementTitles = [
-    "Дубль: контакт был за последние 3 месяца",
-    "Не интересует покупка",
-    "Уже купил",
-    "Недозвон более 5 раз",
-  ];
-  const replacementPanels = replacementTitles.map((title, index) => {
-    const panel = makePanel({ width: 2.62, height: 0.96, texture: createReplacementTexture({ index: index + 1, title }), depth: 0.12 });
-    scene.add(panel);
-    return panel;
-  });
-
-  const pilotPlane = makePlane({ width: 2.9, height: 2.18, texture: createPilotTexture() });
-  scene.add(pilotPlane);
+  // The interactive HUD is rendered in accessible DOM. Earlier builds also
+  // generated a second, permanently transparent copy of every HUD card in
+  // WebGL. Those canvases and geometries added substantial startup work
+  // without contributing a pixel to the final composition.
+  const makeHiddenPanel = () => {
+    const node = new THREE.Object3D();
+    node.userData.materials = [{ opacity: 0 }, { opacity: 0 }];
+    node.visible = false;
+    return node;
+  };
+  const makeHiddenPlane = () => {
+    const node = new THREE.Object3D();
+    node.userData.material = { opacity: 0 };
+    node.visible = false;
+    return node;
+  };
+  const criteriaPanels = Array.from({ length: 4 }, makeHiddenPanel);
+  const scorePlane = makeHiddenPlane();
+  const customPanels = Array.from({ length: 4 }, makeHiddenPanel);
+  const customScorePlane = makeHiddenPlane();
+  const leadPanel = makeHiddenPanel();
+  const replacementPanels = Array.from({ length: 4 }, makeHiddenPanel);
+  const pilotPlane = makeHiddenPlane();
 
   const pathCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(-7.5, 1.4, -1.2),
@@ -735,7 +712,7 @@ const initScene = () => {
   const pathCore = new THREE.Mesh(new THREE.TubeGeometry(pathCurve, 160, 0.009, 6, false), pathCoreMaterial);
   scene.add(pathGlow, pathCore);
 
-  const particleCount = window.innerWidth < 800 ? 150 : 250;
+  const particleCount = window.innerWidth < 800 ? 120 : 220;
   const particlePositions = new Float32Array(particleCount * 3);
   const particleColors = new Float32Array(particleCount * 3);
   const starts = [];
@@ -862,7 +839,12 @@ const initScene = () => {
     camera.aspect = width / height;
     camera.fov = viewportMobile ? 43 : 36;
     camera.updateProjectionMatrix();
-    const pixelRatio = Math.min(window.devicePixelRatio, viewportMobile ? 1.3 : 1.85);
+    const constrainedDevice = (navigator.deviceMemory && navigator.deviceMemory <= 4)
+      || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+    const pixelRatioCap = viewportMobile
+      ? (constrainedDevice ? 1 : 1.2)
+      : (constrainedDevice ? 1.35 : 1.65);
+    const pixelRatio = Math.min(window.devicePixelRatio, pixelRatioCap);
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(width, height, false);
     composer.setPixelRatio(pixelRatio);
@@ -1181,8 +1163,9 @@ document.querySelectorAll("[data-jump='pilot']").forEach((button) => {
 
 document.querySelectorAll("[data-open-dialog]").forEach((button) => {
   button.addEventListener("click", () => {
-    emitEvent("cta_click", { source: "pilot", target: "form" });
-    openLeadDialog("pilot");
+    const source = button.dataset.source || "pilot";
+    emitEvent("cta_click", { source, target: "form" });
+    openLeadDialog(source);
   });
 });
 

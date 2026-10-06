@@ -1072,3 +1072,135 @@ button { color: inherit; }
   html:not([data-motion="full"]) .scroll-cue > i::after,
   html:not([data-motion="full"]) .loading i::after { animation: none; }
 }
+
+
+/* Conversion pass: keep the commercial decision visible without breaking the cinematic scene. */
+.copy--hero { pointer-events: auto; }
+.hero-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: clamp(22px, 3.2vh, 34px);
+}
+.hero-offer {
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0 18px;
+  border: 1px solid rgba(243,243,237,.14);
+  border-radius: 999px;
+  background: rgba(7,9,5,.58);
+  color: rgba(243,243,237,.52);
+  font-size: 9px;
+  font-weight: 660;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 20px 70px rgba(0,0,0,.22);
+}
+.hero-offer span { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.hero-offer b { color: var(--bone); font-size: 12px; font-weight: 650; letter-spacing: -.015em; }
+.hero-offer i { width: 1px; height: 16px; background: rgba(243,243,237,.16); }
+.hero-cta {
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 9px 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lime);
+  color: #071004;
+  font-size: 10px;
+  font-weight: 740;
+  cursor: pointer;
+  box-shadow: 0 18px 60px rgba(128,184,40,.13);
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+.hero-cta > i {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(5,8,3,.12);
+  font-size: 15px;
+  font-style: normal;
+}
+.hero-cta:hover { background: var(--lime-soft); transform: translateY(-2px); }
+.hero-cta:focus-visible, .form-details summary:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+
+.form-details {
+  border: 1px solid rgba(243,243,237,.13);
+  border-radius: 12px;
+  background: rgba(255,255,255,.018);
+}
+.form-details summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 15px;
+  color: rgba(243,243,237,.68);
+  font-size: 10px;
+  font-weight: 680;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+.form-details summary::-webkit-details-marker { display: none; }
+.form-details summary::after { content: "+"; color: var(--lime); font-size: 18px; font-weight: 360; }
+.form-details[open] summary::after { content: "−"; }
+.form-details summary small { margin-left: auto; color: rgba(243,243,237,.34); font-size: 8px; font-weight: 620; letter-spacing: .1em; }
+.form-details__fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 2px 14px 14px; }
+
+.loading {
+  inset: auto auto calc(var(--safe-bottom) + 42px) 50%;
+  width: auto;
+  padding: 10px 13px;
+  place-content: initial;
+  grid-template-columns: auto 70px;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid rgba(243,243,237,.11);
+  border-radius: 999px;
+  background: rgba(5,6,4,.58);
+  font-size: 7px;
+  transform: translateX(-50%);
+  backdrop-filter: blur(14px);
+}
+.loading i { width: 70px; }
+
+@media (max-width: 800px) {
+  .copy--hero { top: 47%; }
+  .hero-action { flex-direction: column; gap: 10px; margin-top: 20px; }
+  .hero-offer { min-height: 42px; gap: 8px; padding: 0 12px; font-size: 7px; }
+  .hero-offer b { font-size: 9px; }
+  .hero-offer i { height: 12px; }
+  .hero-cta { min-height: 48px; font-size: 9px; }
+  .form-details__fields { grid-template-columns: 1fr; }
+  .loading { bottom: calc(var(--safe-bottom) + 38px); }
+}
+
+@media (max-width: 440px) {
+  .hero-summary { max-width: 33ch; margin-top: 19px; }
+  .hero-action { margin-top: 16px; }
+  .hero-offer { max-width: calc(100vw - 30px); flex-wrap: wrap; justify-content: center; padding: 8px 12px; }
+  .hero-cta { min-height: 46px; }
+}
+
+@media (max-height: 700px) {
+  .copy--hero h1 { margin-top: 13px; }
+  .hero-summary { margin-top: 15px; }
+  .hero-action { margin-top: 13px; }
+  .hero-offer { min-height: 40px; }
+  .hero-cta { min-height: 44px; }
+}
+
+@media (max-height: 560px) {
+  .hero-offer { display: none; }
+}
