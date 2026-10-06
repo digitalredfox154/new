@@ -1,22 +1,22 @@
 {
   "schema": 1,
-  "release": "12-ci-c5b4c11a8b46",
-  "sourceSha": "c5b4c11a8b464c0957878f48255652b0a9975da7",
+  "release": "12-ci-86cadadac5f2",
+  "sourceSha": "86cadadac5f2dee7909dccd1a3bd75ce25260503",
   "repository": "digitalredfox154/new",
   "sourceBranch": "samai-landing",
-  "runId": 37416908922,
+  "runId": 37421979260,
   "runAttempt": 1,
   "target": "/test/",
   "files": [
     {
-      "path": "assets/index-C0t8AFK0.css",
-      "sha256": "716ae93b33161ad8e6c4f95c8e8ed85ae13fa97e6fd31d182d2d10287b0c1581",
-      "bytes": 48510
+      "path": "assets/index-BueVNSXm.css",
+      "sha256": "8b83f519180490019b61768a3d79ca4da5ba8b5dcbd6d663073914b8180dfa99",
+      "bytes": 51778
     },
     {
-      "path": "assets/index-Z2woaLbl.js",
-      "sha256": "bf770b0a889a6f5b390be9eb5d3acdfbe2aec601492bb4d39a62751e2b5756eb",
-      "bytes": 32745
+      "path": "assets/index-DAEXCpPz.js",
+      "sha256": "d40af322fffb4dfe750ebdc979b907fc93cf1916bc2043c6629f2f6a2a8040c5",
+      "bytes": 27327
     },
     {
       "path": "assets/motion-a3sj5zmn.js",
@@ -45,8 +45,8 @@
     },
     {
       "path": "index.html",
-      "sha256": "fa4157ecd0fca9799d4cafe6f0332e21173ddf53f5f419b7ede1f54db99f3398",
-      "bytes": 21868
+      "sha256": "d3e861d5fe8854f8e6d51dbca09cade398bc0985d0c9961ff44be0327b4bc787",
+      "bytes": 22736
     },
     {
       "path": "privacy.html",

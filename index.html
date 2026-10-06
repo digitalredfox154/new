@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,nofollow" />
-    <meta name="samai-build" content="12-ci-c5b4c11a8b46" />
+    <meta name="samai-build" content="12-ci-86cadadac5f2" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="theme-color" content="#050604" />
     <meta name="description" content="Квалифицированные лиды для агентств новостроек — по критериям заказчика." />
@@ -31,11 +31,11 @@
         root.dataset.motion = requested === "reduced" ? "reduced" : "full";
       })();
     </script>
-    <script type="module" crossorigin src="./assets/index-Z2woaLbl.js"></script>
+    <script type="module" crossorigin src="./assets/index-DAEXCpPz.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/three-core-CMELNRvO.js">
     <link rel="modulepreload" crossorigin href="./assets/three-extras-DWsUt3Iu.js">
     <link rel="modulepreload" crossorigin href="./assets/motion-a3sj5zmn.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-C0t8AFK0.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-BueVNSXm.css">
   </head>
   <body>
     <a class="skip-link" href="#pilot">К предложению</a>
@@ -46,7 +46,7 @@
         <span class="wordmark-copy"><strong>SAMAI</strong><small>CONSULTING</small></span>
       </a>
       <div class="topbar-actions">
-        <button class="topbar-cta" type="button" data-jump="pilot">Обсудить критерии</button>
+        <button class="topbar-cta" type="button" data-jump="pilot">Согласовать критерии теста</button>
         <button class="motion-control" type="button" aria-pressed="false">
           <span>Пауза</span><i aria-hidden="true"></i>
         </button>
@@ -146,7 +146,15 @@
           <section class="copy copy--hero" aria-labelledby="hero-title">
             <p class="eyebrow">ДЛЯ АГЕНТСТВ НОВОСТРОЕК</p>
             <h1 id="hero-title"><span>Квалифицированные лиды</span><em>по вашим критериям.</em></h1>
-            <p class="hero-summary">Вы задаёте критерии. Мы проверяем и передаём подходящие контакты. Менеджеру остаётся позвонить и продать.</p>
+            <p class="hero-summary">Вы задаёте критерии. Мы проверяем и передаём подходящие контакты с контекстом для разговора. Менеджер продолжает диалог и ведёт клиента к сделке.</p>
+            <div class="hero-action">
+              <div class="hero-offer" aria-label="Условия теста">
+                <span><b>10</b> лидов</span><i aria-hidden="true"></i>
+                <span><b>3 500 ₽</b> за лид</span><i aria-hidden="true"></i>
+                <span><b>35 000 ₽</b> за тест</span>
+              </div>
+              <button class="hero-cta" type="button" data-open-dialog data-source="hero"><span>Согласовать критерии теста</span><i aria-hidden="true">↗</i></button>
+            </div>
           </section>
 
           <section class="copy copy--criteria" aria-labelledby="criteria-title">
@@ -244,19 +252,22 @@
         </fieldset>
         <label><span id="contact-label">Ваш телефон *</span><input id="contact-value" name="contact" autocomplete="tel" inputmode="tel" maxlength="160" aria-describedby="contact-error" placeholder="+7 999 123-45-67" required /></label>
         <p class="field-error" id="contact-error" hidden></p>
-        <div class="form-row">
-          <label><span>Город / регион *</span><input id="city" name="city" autocomplete="address-level2" maxlength="160" aria-describedby="city-error" required /></label>
-          <label><span>Какую недвижимость продаёте</span><input id="segment" name="segment" autocomplete="off" maxlength="240" /></label>
-        </div>
+        <label><span>Город / регион *</span><input id="city" name="city" autocomplete="address-level2" maxlength="160" aria-describedby="city-error" required /></label>
         <p class="field-error" id="city-error" hidden></p>
-        <label><span>Сколько лидов нужно на старте</span><input id="volume" name="volume" type="number" inputmode="numeric" min="10" max="1000" step="10" value="10" /></label>
+        <details class="form-details">
+          <summary><span>Дополнить заявку</span><small>необязательно</small></summary>
+          <div class="form-details__fields">
+            <label><span>Какую недвижимость продаёте</span><input id="segment" name="segment" autocomplete="off" maxlength="240" /></label>
+            <label><span>Сколько лидов нужно на старте</span><input id="volume" name="volume" type="number" inputmode="numeric" min="10" max="1000" step="10" value="10" /></label>
+          </div>
+        </details>
         <div class="hp-field" aria-hidden="true"><label for="website">Не заполняйте это поле</label><input id="website" name="website" tabindex="-1" autocomplete="off" /></div>
         <div class="consent-field">
           <label><input id="privacy-consent" name="privacy_consent" type="checkbox" required /><span>Согласен на <a href="consent.html" target="_blank" rel="noopener">обработку персональных данных</a> и ознакомлен с <a href="privacy.html" target="_blank" rel="noopener">Политикой</a>.</span></label>
           <p class="field-error" id="consent-error" hidden></p>
         </div>
         <input id="service-value" name="service" type="hidden" value="Квалифицированные заявки" />
-        <button class="form-submit" type="submit" disabled><span>Обсудить критерии</span><i aria-hidden="true">↗</i></button>
+        <button class="form-submit" type="submit" disabled><span>Согласовать критерии теста</span><i aria-hidden="true">↗</i></button>
         <p class="form-status" id="form-status" role="status" aria-live="polite" hidden></p>
         <small>Используем данные только для ответа на заявку. Имя и контакт не попадают в аналитику.</small>
       </form>
