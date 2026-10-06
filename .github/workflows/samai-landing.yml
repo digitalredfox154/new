@@ -2,7 +2,7 @@
 name: SAMAI landing checks and release
 on:
   push:
-    branches: [samai-landing, samai-landing-v05, samai-landing-v06, samai-landing-v07, samai-landing-v08, samai-landing-v09, samai-landing-v10-copy, samai-landing-v11-trust, samai-qualified-leads-v12, samai-release-publish-fix, samai-live-v12-fix, samai-qualified-leads-analytics, samai-v12-full-motion-default]
+    branches: [samai-landing, samai-landing-v05, samai-landing-v06, samai-landing-v07, samai-landing-v08, samai-landing-v09, samai-landing-v10-copy, samai-landing-v11-trust, samai-qualified-leads-v12, samai-release-publish-fix, samai-live-v12-fix, samai-qualified-leads-analytics, samai-v12-full-motion-default, samai-v12-live-smoke-stability]
     paths: ['site/**', 'prototypes/qualified-leads-motion-v1/**', 'tools/**', '.github/workflows/samai-landing.yml', '.github/workflows/samai-live-check.yml', 'requirements-ci.txt']
 permissions:
   contents: read
