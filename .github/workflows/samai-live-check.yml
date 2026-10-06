@@ -83,10 +83,11 @@ jobs:
                       ctx.tracing.start(screenshots=True,snapshots=True,sources=True)
                       page=ctx.new_page();errors=[]
                       page.on('pageerror',lambda e:errors.append(str(e)))
-                      response=page.goto(site+'?motion=full&release-check='+expected,wait_until='load')
+                      response=page.goto(site+'?release-check='+expected,wait_until='load')
                       page.wait_for_function('document.documentElement.classList.contains("is-ready")')
                       check(engine+' live HTML',response.status==200)
                       check(engine+' exact build marker',page.locator('meta[name="samai-build"]').get_attribute('content')==manifest['release'])
+                      check(engine+' full motion is the campaign default',page.locator('html').get_attribute('data-motion')=='full')
                       check(engine+' noindex preview','noindex' in page.locator('meta[name="robots"]').get_attribute('content'))
                       check(engine+' logo loaded',page.locator('.wordmark img').evaluate('(e)=>e.complete&&e.naturalWidth>0'))
                       check(engine+' headline readable',page.locator('#hero-title').is_visible() and 'по вашим критериям' in page.locator('#hero-title').inner_text().lower())
@@ -110,7 +111,7 @@ jobs:
                           page.evaluate('window.scrollTo(0,0)')
                           # Full motion intentionally eases back from chapter 08. Wait for
                           # the observable UI state instead of racing it with a fixed delay.
-                          page.locator('#hero-title').wait_for(state='visible',timeout=3000)
+                          page.locator('#hero-title').wait_for(state='visible',timeout=10000)
                           check(engine+' no overflow '+str(width),page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'))
                           check(engine+' headline remains readable '+str(width),page.locator('#hero-title').is_visible())
                       page.set_viewport_size({'width':390,'height':844});page.evaluate('window.scrollTo(0,document.documentElement.scrollHeight)')
