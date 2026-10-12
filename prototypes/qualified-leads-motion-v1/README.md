@@ -1,6 +1,6 @@
 # SAMAI Qualified Leads — release candidate v12
 
-Исходники непрерывной полноэкранной WebGL-страницы для публикации на `/test/`. Production-сборка создаётся из этой папки, затем упаковывается `tools/build_v12.py` и проверяется `tools/v12_gate.py` в Chromium, Firefox и WebKit.
+Исходники непрерывной полноэкранной WebGL-страницы для публикации на `/lead-gen-agency/`. Production-сборка создаётся из этой папки, затем упаковывается `tools/build_v12.py` и проверяется `tools/v12_gate.py` в Chromium, Firefox и WebKit.
 
 ## Что реализовано
 
