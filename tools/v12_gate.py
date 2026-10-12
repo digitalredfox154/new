@@ -341,13 +341,15 @@ try:
                         engine + f" mobile {width} {label} supporting labels readable",
                         visible_text_min_size(page.locator(supporting_text_selector), 10),
                     )
-                    if label in ("hero", "pilot"):
+                    # Assertions cover every viewport/chapter. Preserve visual
+                    # evidence on a representative short iPhone without making
+                    # WebGL screenshot encoding dominate the release timeout.
+                    if width == 375 and label in ("hero", "pilot"):
                         capture(page, f"{engine}-mobile-{width}-{label}.png")
             page.set_viewport_size({"width": 390, "height": 844})
             story_progress(page, 1.0)
             pilot_cta.wait_for(state="visible")
             check(engine + " mobile pilot visible", pilot_cta.is_visible())
-            capture(page, f"{engine}-mobile-pilot.png")
             pilot_cta.click()
             check(engine + " mobile dialog fits", page.locator(".lead-dialog").evaluate("dialog => dialog.getBoundingClientRect().width <= innerWidth"))
             capture(page, f"{engine}-mobile-form.png")
