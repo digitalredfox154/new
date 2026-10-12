@@ -1410,3 +1410,139 @@ button { color: inherit; }
   .pilot-offer b { font-size: 12px; }
   .primary-cta { min-height: 48px; margin-top: 9px; }
 }
+
+/* P0 iPhone hotfix: keep real glyphs inside the viewport and preserve a clear
+   header-safe reading zone. Compact screens lose decoration, never legibility. */
+@media (max-width: 800px) {
+  :root {
+    --mobile-gutter: clamp(18px, 5vw, 24px);
+    --mobile-copy-top: calc(var(--safe-top) + 72px);
+  }
+
+  .copy,
+  .copy--order,
+  .copy--criteria,
+  .copy--custom,
+  .copy--handoff,
+  .copy--replace,
+  .copy--replace-reasons,
+  .copy--proof,
+  .copy--pilot {
+    top: var(--mobile-copy-top);
+    left: var(--mobile-gutter);
+    right: var(--mobile-gutter);
+    width: auto;
+    max-width: none;
+  }
+
+  .copy .eyebrow {
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .copy--hero {
+    top: 43%;
+    left: var(--mobile-gutter);
+    right: var(--mobile-gutter);
+  }
+  .copy--hero h1 {
+    width: 100%;
+    max-width: 100%;
+    font-size: clamp(29px, 8.8vw, 39px);
+    line-height: .9;
+    letter-spacing: -.058em;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+  }
+  .copy--hero h1 span,
+  .copy--hero h1 em {
+    max-width: 100%;
+  }
+
+  .hero-offer span,
+  .pilot-offer span { font-size: 10px; }
+  .hero-offer b,
+  .pilot-offer b { font-size: 14px; }
+
+  .copy > p:not(.eyebrow):not(.pilot-summary),
+  .copy--hero .hero-summary,
+  .copy--pilot .pilot-summary { font-size: 16px; }
+
+  .hud-card small,
+  .hud-card em,
+  .hud-score--criteria span,
+  .hud-score--custom span,
+  .hud-lead header,
+  .hud-lead footer,
+  .hud-lead__title em,
+  .hud-lead dt,
+  .hud-protocol__head,
+  .hud-protocol li small,
+  .hud-case header,
+  .hud-case footer,
+  .hud-case__metric small,
+  .hud-case__room small {
+    font-size: 10px;
+    line-height: 1.28;
+  }
+}
+
+@media (max-width: 800px) and (max-height: 680px) {
+  :root { --mobile-copy-top: calc(var(--safe-top) + 70px); }
+
+  .copy h2 {
+    font-size: clamp(30px, 8.7vw, 35px);
+    line-height: .93;
+  }
+  .copy .eyebrow { font-size: 10px; }
+
+  .copy--hero { top: 44%; }
+  .copy--hero h1 { font-size: clamp(28px, 8.6vw, 34px); }
+  .copy--hero .hero-summary { font-size: 16px; line-height: 1.38; }
+  .hero-offer span { min-height: 44px; font-size: 10px; }
+  .hero-offer b { font-size: 13px; }
+  .hero-cta { min-height: 48px; font-size: 12px; }
+
+  .hud-group,
+  .hud-group--custom,
+  .hud-group--replace { top: 55%; }
+  .hud-group .hud-card,
+  .hud-group--criteria .hud-card,
+  .hud-group--custom .hud-card,
+  .hud-group--replace .hud-card {
+    min-height: 76px;
+    padding-top: 11px;
+    padding-bottom: 11px;
+  }
+  .hud-card small,
+  .hud-card em,
+  .hud-score--criteria span,
+  .hud-score--custom span,
+  .hud-lead header,
+  .hud-lead footer,
+  .hud-lead__title em,
+  .hud-lead dt,
+  .hud-protocol__head,
+  .hud-protocol li small,
+  .hud-case header,
+  .hud-case footer,
+  .hud-case__metric small,
+  .hud-case__room small { font-size: 10px; }
+  .hud-card strong,
+  .hud-card--replace strong,
+  .hud-lead dd,
+  .hud-protocol li strong,
+  .hud-case__main > span,
+  .hud-case__room strong { font-size: 13px; }
+  .hud-case__room span { font-size: 11px; }
+
+  .hud-lead { top: 49%; }
+  .hud-protocol { top: 55%; }
+  .hud-case { top: 53%; }
+
+  .copy--pilot h2 { font-size: clamp(29px, 8.4vw, 34px); }
+  .copy--pilot .pilot-summary { font-size: 16px; line-height: 1.36; }
+  .pilot-offer span { min-height: 42px; font-size: 10px; }
+  .pilot-offer b { font-size: 13px; }
+}

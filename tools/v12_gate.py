@@ -3,10 +3,12 @@ import contextlib
 import functools
 import http.server
 import json
+import mimetypes
 import os
 import threading
 import traceback
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 from playwright.sync_api import sync_playwright
 
@@ -16,6 +18,7 @@ artifacts.mkdir(exist_ok=True)
 checks = []
 errors = []
 manifest = json.loads((Path("dist") / "release.json").read_text(encoding="utf-8"))
+capture_artifacts = os.environ.get("SAMAI_CAPTURE_SCREENSHOTS", "1") != "0"
 
 
 def check(name, value):
@@ -23,16 +26,27 @@ def check(name, value):
     assert value, name
 
 
+def capture(page, path):
+    if capture_artifacts:
+        page.screenshot(path=artifacts / path)
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *_):
         pass
 
 
-server = http.server.ThreadingHTTPServer(
-    ("127.0.0.1", 8765),
-    functools.partial(Handler, directory="dist"),
-)
-threading.Thread(target=server.serve_forever, daemon=True).start()
+server = None
+try:
+    server = http.server.ThreadingHTTPServer(
+        ("127.0.0.1", 8765),
+        functools.partial(Handler, directory="dist"),
+    )
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+except PermissionError:
+    # Windows' offline sandbox can deny loopback binds. The browser route below
+    # serves the exact same immutable dist files without weakening the gate.
+    pass
 
 
 def install_api_routes(context, leads, events, mode):
@@ -65,6 +79,20 @@ def install_api_routes(context, leads, events, mode):
         events.append(json.loads(request.post_data or "{}"))
         return route.fulfill(status=204, headers=cors)
 
+    def static_file(route, request):
+        relative = unquote(urlparse(request.url).path).lstrip("/") or "index.html"
+        file_path = (Path("dist") / relative).resolve()
+        dist_root = Path("dist").resolve()
+        if file_path != dist_root and dist_root not in file_path.parents:
+            return route.fulfill(status=403)
+        if not file_path.is_file():
+            return route.fulfill(status=404)
+        content_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
+        return route.fulfill(status=200, content_type=content_type, body=file_path.read_bytes())
+
+    if server is None:
+        context.route("http://127.0.0.1:8765/**", static_file)
+
     context.route("https://app.samaiconsulting.ru/api/webhooks/leads/samai-public/contact", contact)
     context.route("https://app.samaiconsulting.ru/api/webhooks/leads/samai-public/events", event)
     context.route("https://app.samaiconsulting.ru/api/public/**", lambda route: route.abort())
@@ -83,6 +111,40 @@ def story_progress(page, progress):
         page.keyboard.press("End")
         page.mouse.wheel(0, 100000)
     page.wait_for_timeout(1100)
+
+
+def text_glyphs_fit(locator, vertical=True):
+    """Measure rendered text fragments, not a block box that can hide clipping."""
+    return locator.evaluate(
+        """(root, vertical) => {
+          const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+          const fragments = [];
+          let node;
+          while ((node = walker.nextNode())) {
+            if (!node.textContent.trim()) continue;
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            fragments.push(...range.getClientRects());
+          }
+          if (!fragments.length) return false;
+          return fragments.every(rect =>
+            rect.left >= -1 && rect.right <= innerWidth + 1 &&
+            (!vertical || (rect.top >= -1 && rect.bottom <= innerHeight + 1))
+          );
+        }""",
+        vertical,
+    )
+
+
+def visible_text_min_size(locator, minimum):
+    return locator.evaluate_all(
+        """(els, minimum) => els.length > 0 && els.every(el => {
+          const style = getComputedStyle(el);
+          return style.display === 'none' || style.visibility === 'hidden' ||
+            parseFloat(style.fontSize) >= minimum;
+        })""",
+        minimum,
+    )
 
 
 try:
@@ -141,7 +203,7 @@ try:
                     "els => els.filter(el => Number(getComputedStyle(el).opacity) > .42 && getComputedStyle(el).visibility !== 'hidden').length"
                 )
                 check(engine + " single message " + label, visible_copy <= 1)
-                page.screenshot(path=artifacts / f"{engine}-{label}.png")
+                capture(page, f"{engine}-{label}.png")
 
             pilot_cta = page.locator(".copy--pilot [data-open-dialog]")
             check(
@@ -223,7 +285,15 @@ try:
                 (0.91, "proof", ".copy--proof", ".hud-case__main > span, .hud-case__room strong"),
                 (0.98, "pilot", ".copy--pilot", None),
             ]
-            for width, height in [(320, 568), (360, 740), (390, 844), (430, 932)]:
+            mobile_viewports = [(320, 568), (375, 667), (390, 844), (430, 932)]
+            supporting_text_selector = ", ".join([
+                ".hud-card small", ".hud-card em", ".hud-score--criteria span",
+                ".hud-score--custom span", ".hud-lead header", ".hud-lead footer",
+                ".hud-lead__title em", ".hud-lead dt", ".hud-protocol__head",
+                ".hud-protocol li small", ".hud-case header", ".hud-case footer",
+                ".hud-case__metric small", ".hud-case__room small",
+            ])
+            for width, height in mobile_viewports:
                 page.set_viewport_size({"width": width, "height": height})
                 for progress, label, selector, supporting_selector in mobile_chapters:
                     story_progress(page, progress)
@@ -241,10 +311,25 @@ try:
                             "el => { const r=el.getBoundingClientRect(); return r.left >= -1 && r.right <= innerWidth + 1; }"
                         ),
                     )
+                    check(
+                        engine + f" mobile {width} {label} glyph bounds",
+                        text_glyphs_fit(expected),
+                    )
+                    if label != "hero":
+                        check(
+                            engine + f" mobile {width} {label} header clearance",
+                            expected.evaluate(
+                                "el => el.getBoundingClientRect().top >= document.querySelector('.topbar').getBoundingClientRect().bottom + 8"
+                            ),
+                        )
                     readable = expected.locator("h1, h2, p:not(.eyebrow)").evaluate_all(
-                        "els => els.filter(el => getComputedStyle(el).display !== 'none').every(el => parseFloat(getComputedStyle(el).fontSize) >= 13)"
+                        "els => els.filter(el => getComputedStyle(el).display !== 'none').every(el => parseFloat(getComputedStyle(el).fontSize) >= 16)"
                     )
                     check(engine + f" mobile {width} {label} readable type", readable)
+                    check(
+                        engine + f" mobile {width} {label} eyebrow readable",
+                        visible_text_min_size(expected.locator(".eyebrow"), 10),
+                    )
                     if supporting_selector:
                         check(
                             engine + f" mobile {width} {label} supporting data",
@@ -252,15 +337,20 @@ try:
                                 "els => els.length > 0 && els.every(el => parseFloat(getComputedStyle(el).fontSize) >= 11)"
                             ),
                         )
-                page.screenshot(path=artifacts / f"{engine}-mobile-{width}-pilot.png")
+                    check(
+                        engine + f" mobile {width} {label} supporting labels readable",
+                        visible_text_min_size(page.locator(supporting_text_selector), 10),
+                    )
+                    if label in ("hero", "pilot"):
+                        capture(page, f"{engine}-mobile-{width}-{label}.png")
             page.set_viewport_size({"width": 390, "height": 844})
             story_progress(page, 1.0)
             pilot_cta.wait_for(state="visible")
             check(engine + " mobile pilot visible", pilot_cta.is_visible())
-            page.screenshot(path=artifacts / f"{engine}-mobile-pilot.png")
+            capture(page, f"{engine}-mobile-pilot.png")
             pilot_cta.click()
             check(engine + " mobile dialog fits", page.locator(".lead-dialog").evaluate("dialog => dialog.getBoundingClientRect().width <= innerWidth"))
-            page.screenshot(path=artifacts / f"{engine}-mobile-form.png")
+            capture(page, f"{engine}-mobile-form.png")
             form.locator(".dialog-close").click()
             check(engine + " no runtime exception", not runtime_errors)
             print(engine + ": desktop complete", flush=True)
@@ -292,7 +382,7 @@ try:
             check(engine + " reduced form opens", reduced_page.locator(".lead-dialog").get_attribute("open") is not None)
             reduced_page.locator(".dialog-close").click()
             reduced_page.wait_for_timeout(650)
-            reduced_page.screenshot(path=artifacts / f"{engine}-mobile-reduced.png")
+            capture(reduced_page, f"{engine}-mobile-reduced.png")
             print(engine + ": reduced complete", flush=True)
             reduced.close()
 
@@ -308,7 +398,7 @@ try:
                 fallback_cta.wait_for(state="visible")
                 check("dynamic fallback CTA visible", fallback_cta.is_visible())
                 check("dynamic fallback final chapter", fallback_page.locator(".stage-index__current").inner_text() == "08")
-                fallback_page.screenshot(path=artifacts / "chromium-dynamic-fallback.png")
+                capture(fallback_page, "chromium-dynamic-fallback.png")
                 print("chromium: fallback complete", flush=True)
                 fallback_context.close()
 
