@@ -8,7 +8,7 @@ Pushes run: JS syntax -> immutable build -> Russian content gate -> Chromium/Fir
 
 REG uses a narrowly scoped pull agent: HTTPS read-only GitHub access, exact workflow/SHA verification, static-file allowlist, SHA-256 validation, immutable assets and atomic index replacement, plus rollback on public verification failure. No SSH key, root access, application source or customer data is needed.
 
-Only `/test/` is authorized. The form submits through the allowlisted SAMAI endpoint with consent, idempotency and retry-safe delivery; it stays disabled if the production transport is unavailable. Search indexing stays disabled. Production promotion to `/` requires separate approval.
+Only `/lead-gen-agency/` is authorized. The former `/test/` route redirects to it. The form submits through the allowlisted SAMAI endpoint with consent, idempotency and retry-safe delivery; it stays disabled if the production transport is unavailable. Search indexing stays disabled. Production promotion to `/` requires separate approval.
 
 Local checks: Python 3.12+, Node 22, pnpm 10, `pip install -r requirements-ci.txt`, `python -m playwright install --with-deps chromium firefox webkit`, `pnpm --dir prototypes/qualified-leads-motion-v1 install --frozen-lockfile`, `pnpm --dir prototypes/qualified-leads-motion-v1 run build`, `python tools/build_v12.py`, `python tools/content_gate.py`, `python tools/v12_gate.py`.
 

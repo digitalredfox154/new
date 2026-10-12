@@ -15,6 +15,7 @@ artifacts = Path("artifacts")
 artifacts.mkdir(exist_ok=True)
 checks = []
 errors = []
+manifest = json.loads((Path("dist") / "release.json").read_text(encoding="utf-8"))
 
 
 def check(name, value):
@@ -85,6 +86,7 @@ def story_progress(page, progress):
 
 
 try:
+    check("release target", manifest.get("target") == "/lead-gen-agency/")
     with sync_playwright() as playwright:
         for engine in [item for item in os.environ.get("SAMAI_BROWSERS", "chromium,firefox,webkit").split(",") if item]:
             print(engine + ": launch", flush=True)
@@ -110,6 +112,8 @@ try:
             check(engine + " HTTP", response.status == 200)
             check(engine + " noindex", "noindex" in (page.locator('meta[name="robots"]').get_attribute("content") or ""))
             check(engine + " v12 marker", page.locator('meta[name="samai-build"]').get_attribute("content").startswith("12-ci-"))
+            check(engine + " canonical route", page.locator('link[rel="canonical"]').get_attribute("href") == "https://samaiconsulting.ru/lead-gen-agency/")
+            check(engine + " social route", page.locator('meta[property="og:url"]').get_attribute("content") == "https://samaiconsulting.ru/lead-gen-agency/")
             check(engine + " hero", "по вашим критериям" in page.locator("h1").inner_text().lower())
             check(engine + " early test anchor", "35 000 ₽" in page.locator(".hero-offer").inner_text())
             check(engine + " hero CTA", page.locator(".hero-cta").is_visible())
@@ -204,10 +208,51 @@ try:
             form.locator(".dialog-close").click()
             page.wait_for_timeout(100)
             check(engine + " form close event", any(item.get("event") == "form_close" and item.get("properties", {}).get("source") == "pilot" for item in events))
-            for width in [360, 390, 423, 768, 1024, 1440, 1920]:
+            for width in [320, 360, 390, 423, 768, 1024, 1440, 1920]:
                 page.set_viewport_size({"width": width, "height": 844 if width < 800 else 900})
                 page.wait_for_timeout(120)
                 check(engine + " no overflow " + str(width), page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"))
+            mobile_chapters = [
+                (0.0, "hero", ".copy--hero", None),
+                (0.21, "order", ".copy--order", None),
+                (0.4, "criteria", ".copy--criteria", '[data-hud="criteria"] strong'),
+                (0.54, "custom", ".copy--custom", '[data-hud="custom"] strong'),
+                (0.66, "handoff", ".copy--handoff", ".hud-lead dd"),
+                (0.74, "protocol", ".copy--replace", ".hud-protocol li strong"),
+                (0.82, "replacement", ".copy--replace-reasons", '[data-hud="replace"] strong'),
+                (0.91, "proof", ".copy--proof", ".hud-case__main > span, .hud-case__room strong"),
+                (0.98, "pilot", ".copy--pilot", None),
+            ]
+            for width, height in [(320, 568), (360, 740), (390, 844), (430, 932)]:
+                page.set_viewport_size({"width": width, "height": height})
+                for progress, label, selector, supporting_selector in mobile_chapters:
+                    story_progress(page, progress)
+                    expected = page.locator(selector)
+                    check(engine + f" mobile {width} {label} copy", expected.is_visible())
+                    check(
+                        engine + f" mobile {width} {label} single message",
+                        page.locator(".copy").evaluate_all(
+                            "els => els.filter(el => Number(getComputedStyle(el).opacity) > .9 && getComputedStyle(el).visibility !== 'hidden').length === 1"
+                        ),
+                    )
+                    check(
+                        engine + f" mobile {width} {label} copy bounds",
+                        expected.evaluate(
+                            "el => { const r=el.getBoundingClientRect(); return r.left >= -1 && r.right <= innerWidth + 1; }"
+                        ),
+                    )
+                    readable = expected.locator("h1, h2, p:not(.eyebrow)").evaluate_all(
+                        "els => els.filter(el => getComputedStyle(el).display !== 'none').every(el => parseFloat(getComputedStyle(el).fontSize) >= 13)"
+                    )
+                    check(engine + f" mobile {width} {label} readable type", readable)
+                    if supporting_selector:
+                        check(
+                            engine + f" mobile {width} {label} supporting data",
+                            page.locator(supporting_selector).evaluate_all(
+                                "els => els.length > 0 && els.every(el => parseFloat(getComputedStyle(el).fontSize) >= 11)"
+                            ),
+                        )
+                page.screenshot(path=artifacts / f"{engine}-mobile-{width}-pilot.png")
             page.set_viewport_size({"width": 390, "height": 844})
             story_progress(page, 1.0)
             pilot_cta.wait_for(state="visible")

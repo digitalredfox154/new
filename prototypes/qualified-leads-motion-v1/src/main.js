@@ -40,6 +40,7 @@ const supportsWebGl2 = () => {
 
 const copy = {
   hero: document.querySelector(".copy--hero"),
+  order: document.querySelector(".copy--order"),
   criteria: document.querySelector(".copy--criteria"),
   custom: document.querySelector(".copy--custom"),
   handoff: document.querySelector(".copy--handoff"),
@@ -160,24 +161,38 @@ const updateStoryUi = (progress, viewportMobile) => {
   hud.caseRoom.style.transform = `translate3d(${26 * (1 - roomEnter)}px, 0, 0)`;
   setHudElement(hud.pilotScore, pilotVisibility, 14 * (1 - pilotVisibility), mix(0.94, 1, pilotVisibility));
 
-  const heroVisibility = 1 - smooth(0.075, 0.15, progress);
-  const criteriaCopyVisibility = envelope(progress, 0.285, 0.325, 0.4, 0.455);
-  const customCopyVisibility = envelope(progress, 0.455, 0.49, 0.565, 0.595);
-  const handoffCopyVisibility = envelope(progress, 0.595, 0.63, 0.68, 0.715);
-  const replaceCopyVisibility = viewportMobile
-    ? envelope(progress, 0.715, 0.745, 0.758, 0.79)
-    : envelope(progress, 0.715, 0.745, 0.83, 0.86);
-  const replaceReasonsCopyVisibility = viewportMobile ? envelope(progress, 0.77, 0.795, 0.83, 0.86) : 0;
-  const proofCopyVisibility = envelope(progress, 0.855, 0.885, 0.92, 0.948);
-  const pilotCopyVisibility = smooth(0.94, 0.975, progress);
-  setCopy(copy.hero, heroVisibility, -14 * (1 - heroVisibility), mix(1, 0.96, 1 - heroVisibility));
-  setCopy(copy.criteria, criteriaCopyVisibility, 10 * (1 - criteriaCopyVisibility), mix(0.97, 1, criteriaCopyVisibility));
-  setCopy(copy.custom, customCopyVisibility, 10 * (1 - customCopyVisibility), mix(0.97, 1, customCopyVisibility));
-  setCopy(copy.handoff, handoffCopyVisibility, 10 * (1 - handoffCopyVisibility), mix(0.97, 1, handoffCopyVisibility));
-  setCopy(copy.replace, replaceCopyVisibility, 10 * (1 - replaceCopyVisibility), mix(0.97, 1, replaceCopyVisibility));
-  setCopy(copy.replaceReasons, replaceReasonsCopyVisibility, 10 * (1 - replaceReasonsCopyVisibility), mix(0.97, 1, replaceReasonsCopyVisibility));
-  setCopy(copy.proof, proofCopyVisibility, 10 * (1 - proofCopyVisibility), mix(0.97, 1, proofCopyVisibility));
-  setCopy(copy.pilot, pilotCopyVisibility, 12 * (1 - pilotCopyVisibility), mix(0.965, 1, pilotCopyVisibility));
+  if (viewportMobile) {
+    const activeCopy = progress < 0.12 ? "hero"
+      : progress < 0.29 ? "order"
+        : progress < 0.455 ? "criteria"
+          : progress < 0.595 ? "custom"
+            : progress < 0.715 ? "handoff"
+              : progress < 0.775 ? "replace"
+                : progress < 0.86 ? "replaceReasons"
+                  : progress < 0.945 ? "proof"
+                    : "pilot";
+    Object.entries(copy).forEach(([name, element]) => {
+      const active = name === activeCopy;
+      setCopy(element, active ? 1 : 0, active ? 0 : 12, active ? 1 : 0.98);
+    });
+  } else {
+    const heroVisibility = 1 - smooth(0.075, 0.15, progress);
+    const criteriaCopyVisibility = envelope(progress, 0.285, 0.325, 0.4, 0.455);
+    const customCopyVisibility = envelope(progress, 0.455, 0.49, 0.565, 0.595);
+    const handoffCopyVisibility = envelope(progress, 0.595, 0.63, 0.68, 0.715);
+    const replaceCopyVisibility = envelope(progress, 0.715, 0.745, 0.83, 0.86);
+    const proofCopyVisibility = envelope(progress, 0.855, 0.885, 0.92, 0.948);
+    const pilotCopyVisibility = smooth(0.94, 0.975, progress);
+    setCopy(copy.hero, heroVisibility, -14 * (1 - heroVisibility), mix(1, 0.96, 1 - heroVisibility));
+    setCopy(copy.order, 0);
+    setCopy(copy.criteria, criteriaCopyVisibility, 10 * (1 - criteriaCopyVisibility), mix(0.97, 1, criteriaCopyVisibility));
+    setCopy(copy.custom, customCopyVisibility, 10 * (1 - customCopyVisibility), mix(0.97, 1, customCopyVisibility));
+    setCopy(copy.handoff, handoffCopyVisibility, 10 * (1 - handoffCopyVisibility), mix(0.97, 1, handoffCopyVisibility));
+    setCopy(copy.replace, replaceCopyVisibility, 10 * (1 - replaceCopyVisibility), mix(0.97, 1, replaceCopyVisibility));
+    setCopy(copy.replaceReasons, 0);
+    setCopy(copy.proof, proofCopyVisibility, 10 * (1 - proofCopyVisibility), mix(0.97, 1, proofCopyVisibility));
+    setCopy(copy.pilot, pilotCopyVisibility, 12 * (1 - pilotCopyVisibility), mix(0.965, 1, pilotCopyVisibility));
+  }
   scrollCue.style.opacity = String(1 - smooth(0.02, 0.08, progress));
 
   const chapterIndex = progress < 0.12 ? 0 : progress < 0.29 ? 1 : progress < 0.455 ? 2 : progress < 0.595 ? 3 : progress < 0.715 ? 4 : progress < 0.86 ? 5 : progress < 0.945 ? 6 : 7;

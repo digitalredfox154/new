@@ -1,4 +1,4 @@
-// Deploy only verified static files to the authorized /test directory.
+// Deploy only verified static files to the authorized /lead-gen-agency route.
 // No credentials, downloaded commands, root privileges or application access.
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import {setTimeout as sleep} from 'node:timers/promises';
 const ROOT='/landing/test', HOME=ROOT+'/.samai-release', REPO='digitalredfox154/new';
 const API='https://api.github.com/repos/'+REPO, RAW='https://raw.githubusercontent.com/'+REPO;
-const BRANCH='samai-landing-releases', SITE='https://samaiconsulting.ru/test/';
+const BRANCH='samai-landing-releases', SITE='https://samaiconsulting.ru/lead-gen-agency/';
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const requireValue=(ok,message)=>{if(!ok)throw new Error(message)};
 async function readJson(file){try{return JSON.parse(await fs.readFile(file,'utf8'))}catch(e){if(e.code==='ENOENT')return null;throw e}}
@@ -21,7 +21,7 @@ async function fetchBytes(url,limit=3000000){
 }
 async function get(url){return JSON.parse((await fetchBytes(url)).toString('utf8'))}
 function validate(m){
-  requireValue(m.schema===1&&m.repository===REPO&&m.sourceBranch==='samai-landing'&&m.target==='/test/','Manifest scope mismatch');
+  requireValue(m.schema===1&&m.repository===REPO&&m.sourceBranch==='samai-landing'&&m.target==='/lead-gen-agency/','Manifest scope mismatch');
   requireValue(/^[a-f0-9]{40}$/.test(m.sourceSha)&&m.release==='04-ci-'+m.sourceSha.slice(0,12),'Invalid source version');
   requireValue(Number.isSafeInteger(m.runId)&&m.runId>0&&Number.isSafeInteger(m.runAttempt)&&m.runAttempt>=1,'Invalid workflow identity');
   requireValue(Array.isArray(m.files)&&m.files.length>=5&&m.files.length<=40,'Invalid file count');
@@ -70,7 +70,7 @@ async function tick(){
     await atomic(ROOT+'/index.html',await fs.readFile(stage+'/index.html'));await atomic(ROOT+'/release.json',JSON.stringify(m,null,2)+'\n');await verifyPublic(m);
     const entry={state:'published',release:m.release,sourceSha:m.sourceSha,releaseSha,runId:m.runId,indexHash:m.files.find(f=>f.path==='index.html').sha256,publishedAt:new Date().toISOString(),backup};
     await atomic(HOME+'/current.json',JSON.stringify(entry,null,2)+'\n');
-    await atomic(ROOT+'/deployment.json',JSON.stringify({release:m.release,sourceSha:m.sourceSha,runId:m.runId,publishedAt:entry.publishedAt,target:'/test/',verifiedFiles:m.files.length},null,2)+'\n');
+    await atomic(ROOT+'/deployment.json',JSON.stringify({release:m.release,sourceSha:m.sourceSha,runId:m.runId,publishedAt:entry.publishedAt,target:'/lead-gen-agency/',verifiedFiles:m.files.length},null,2)+'\n');
     await fs.rm(HOME+'/journal.json');return status(entry)
   }catch(error){await restore(journal);await status({state:'rolled-back',candidate:m.release,error:error.message});throw error}
 }

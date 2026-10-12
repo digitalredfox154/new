@@ -1,4 +1,4 @@
-"""Package the qualified-leads Vite build as an immutable /test/ release."""
+"""Package the qualified-leads Vite build as an immutable /lead-gen-agency/ release."""
 import hashlib
 import json
 import os
@@ -64,7 +64,7 @@ manifest = {
     "sourceBranch": branch,
     "runId": int(os.environ.get("GITHUB_RUN_ID", "0")),
     "runAttempt": int(os.environ.get("GITHUB_RUN_ATTEMPT", "1")),
-    "target": "/test/",
+    "target": "/lead-gen-agency/",
     "files": files,
 }
 (out / "release.json").write_text(
