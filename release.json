@@ -1,22 +1,22 @@
 {
   "schema": 1,
-  "release": "12-ci-0d260c3f89a8",
-  "sourceSha": "0d260c3f89a899d1a3376a76efd5a665fc9735a2",
+  "release": "12-ci-ace966aa8c8b",
+  "sourceSha": "ace966aa8c8bced60c9967c7ae07c943f099a1f1",
   "repository": "digitalredfox154/new",
   "sourceBranch": "samai-landing",
-  "runId": 38242945838,
+  "runId": 38278537725,
   "runAttempt": 1,
   "target": "/lead-gen-agency/",
   "files": [
     {
-      "path": "assets/index-CkdnxJij.js",
+      "path": "assets/index-B6gdYKik.js",
       "sha256": "d91a3438047d3855f6342a72716af1da7783837d4bd9b9565b5dea257ca3b841",
       "bytes": 27534
     },
     {
-      "path": "assets/index-rjut3L1q.css",
-      "sha256": "6caa59373a354276da1cbf094c1ac2b931f50ed1ba900c9674355a68cfb42872",
-      "bytes": 56660
+      "path": "assets/index-Dn0IHbc7.css",
+      "sha256": "5004cb420d8db08e694c3d89bebc5ae060569ce7b0c5bb1f3e019375523bddfd",
+      "bytes": 59237
     },
     {
       "path": "assets/motion-a3sj5zmn.js",
@@ -45,7 +45,7 @@
     },
     {
       "path": "index.html",
-      "sha256": "85e6e79589b2e2a9f4114d9daa7b04caa7cd32bd36955aebe12e2eba90f65705",
+      "sha256": "ac5c382509478a0371b335dcbb04f8dde5b12bd6cdf18b4436b4839c8e1144f4",
       "bytes": 23248
     },
     {
