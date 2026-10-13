@@ -320,7 +320,7 @@ try:
                 check(engine + " no overflow " + str(width), page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"))
             mobile_chapters = [
                 (0.0, "hero", ".copy--hero", None),
-                (0.21, "order", ".copy--order", None),
+                (0.21, "order", ".copy--order", ".hud-order-terms__grid strong"),
                 (0.4, "criteria", ".copy--criteria", '[data-hud="criteria"] strong'),
                 (0.54, "custom", ".copy--custom", '[data-hud="custom"] strong'),
                 (0.66, "handoff", ".copy--handoff", ".hud-lead dd"),
@@ -332,6 +332,7 @@ try:
             mobile_viewports = [(320, 568), (375, 667), (390, 844), (430, 932)]
             supporting_text_selector = ", ".join([
                 ".hud-card small", ".hud-card em", ".hud-score--criteria span",
+                ".hud-order-terms header", ".hud-order-terms small", ".hud-order-terms footer",
                 ".hud-score--custom span", ".hud-lead header", ".hud-lead footer",
                 ".hud-lead__title em", ".hud-lead dt", ".hud-protocol__head",
                 ".hud-protocol li small", ".hud-case header", ".hud-case footer",
@@ -390,7 +391,7 @@ try:
                         expected.evaluate(
                             """copy => {
                               const a = copy.getBoundingClientRect();
-                              const evidence = [...document.querySelectorAll('[data-hud], [data-hud-score], [data-hud-lead], [data-hud-protocol], [data-hud-case]')]
+                              const evidence = [...document.querySelectorAll('[data-hud-order], [data-hud], [data-hud-score], [data-hud-lead], [data-hud-protocol], [data-hud-case]')]
                                 .filter(el => {
                                   const style = getComputedStyle(el);
                                   const box = el.getBoundingClientRect();
@@ -405,7 +406,7 @@ try:
                     )
                     check(
                         engine + f" mobile {width} {label} evidence bounds",
-                        page.locator("[data-hud], [data-hud-score], [data-hud-lead], [data-hud-protocol], [data-hud-case]").evaluate_all(
+                        page.locator("[data-hud-order], [data-hud], [data-hud-score], [data-hud-lead], [data-hud-protocol], [data-hud-case]").evaluate_all(
                             """els => els.filter(el => {
                               const style = getComputedStyle(el);
                               const box = el.getBoundingClientRect();
