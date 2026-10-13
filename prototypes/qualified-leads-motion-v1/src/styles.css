@@ -57,8 +57,8 @@ button { color: inherit; }
   pointer-events: auto;
   touch-action: manipulation;
 }
-.wordmark-mark { position: relative; width: 30px; height: 25px; overflow: hidden; flex: 0 0 auto; }
-.wordmark-mark img { position: absolute; top: -8px; left: -22px; width: 76px; height: 76px; max-width: none; display: block; }
+.wordmark-mark { width: 38px; height: 38px; display: grid; flex: 0 0 auto; place-items: center; }
+.wordmark-mark img { position: static; width: 38px; height: 38px; max-width: 100%; display: block; object-fit: contain; }
 .wordmark-copy { display: grid; gap: 1px; line-height: 1; }
 .wordmark-copy strong { font-size: 12px; font-weight: 760; letter-spacing: -.035em; }
 .wordmark-copy small { color: rgba(243,243,237,.54); font-size: 7px; font-weight: 650; letter-spacing: .16em; }
@@ -779,7 +779,7 @@ button { color: inherit; }
     letter-spacing: -.075em;
   }
   .copy--hero h1 em { margin-top: .14em; }
-  .hero-summary {
+  .copy.copy--hero > p.hero-summary {
     max-width: 30ch;
     margin: 23px 0 0;
     color: rgba(243,243,237,.76);
@@ -1205,9 +1205,9 @@ button { color: inherit; }
   .hero-offer { display: none; }
 }
 
-/* Mobile legibility pass: one clear message per chapter, with supporting data
-   large enough to scan on a 320 px device instead of shrinking the desktop UI. */
-@media (max-width: 800px) {
+/* Legacy mobile tuning retained for history but disabled in favour of the
+   consolidated mobile composition at the end of this file. */
+@media (max-width: 0px) {
   .copy {
     transition: opacity 160ms ease-out, transform 160ms ease-out;
   }
@@ -1339,7 +1339,7 @@ button { color: inherit; }
   .copy--pilot > small { font-size: 10px; }
 }
 
-@media (max-width: 800px) and (max-height: 680px) {
+@media (max-width: 0px) and (max-height: 680px) {
   .copy--order,
   .copy--criteria,
   .copy--custom,
@@ -1411,9 +1411,8 @@ button { color: inherit; }
   .primary-cta { min-height: 48px; margin-top: 9px; }
 }
 
-/* P0 iPhone hotfix: keep real glyphs inside the viewport and preserve a clear
-   header-safe reading zone. Compact screens lose decoration, never legibility. */
-@media (max-width: 800px) {
+/* Superseded hotfix. */
+@media (max-width: 0px) {
   :root {
     --mobile-gutter: clamp(18px, 5vw, 24px);
     --mobile-copy-top: calc(var(--safe-top) + 72px);
@@ -1488,7 +1487,7 @@ button { color: inherit; }
   }
 }
 
-@media (max-width: 800px) and (max-height: 680px) {
+@media (max-width: 0px) and (max-height: 680px) {
   :root { --mobile-copy-top: calc(var(--safe-top) + 70px); }
 
   .copy h2 {
@@ -1545,4 +1544,278 @@ button { color: inherit; }
   .copy--pilot .pilot-summary { font-size: 16px; line-height: 1.36; }
   .pilot-offer span { min-height: 42px; font-size: 10px; }
   .pilot-offer b { font-size: 13px; }
+}
+
+/* Mobile composition v2. One authoritative layer: readable copy, clear
+   separation between narrative and evidence, and compact decoration. */
+@media (max-width: 800px) {
+  :root {
+    --mobile-gutter: clamp(18px, 5vw, 24px);
+    --mobile-copy-top: calc(var(--safe-top) + 72px);
+  }
+
+  .story { height: 560svh; }
+  .stage { height: 100dvh; min-height: 100svh; }
+  .topbar { padding: var(--safe-top) var(--mobile-gutter) 0; }
+  .wordmark, .motion-control, .motion-control i { min-width: 44px; min-height: 44px; }
+  .motion-control > span, .topbar-cta { display: none; }
+
+  .copy,
+  .copy--order,
+  .copy--criteria,
+  .copy--custom,
+  .copy--handoff,
+  .copy--replace,
+  .copy--replace-reasons,
+  .copy--proof,
+  .copy--pilot {
+    top: var(--mobile-copy-top);
+    right: var(--mobile-gutter);
+    left: var(--mobile-gutter);
+    width: auto;
+    max-width: none;
+    text-align: left;
+    transform: translate3d(0, var(--copy-y), 0) scale(var(--copy-scale));
+    transform-origin: left top;
+    transition: none;
+  }
+  .copy::before {
+    inset: -18px calc(var(--mobile-gutter) * -1) -28px;
+    background: linear-gradient(180deg, rgba(5,6,4,.99) 0 64%, rgba(5,6,4,.82) 82%, transparent 100%);
+  }
+  .copy .eyebrow { font-size: 10px; line-height: 1.35; letter-spacing: .17em; }
+  .copy h2 {
+    max-width: 100%;
+    margin-top: 10px;
+    font-size: clamp(32px, 9.8vw, 42px);
+    line-height: .93;
+    letter-spacing: -.061em;
+    text-wrap: balance;
+  }
+  .copy.copy--order > p:last-child,
+  .copy.copy--criteria > p:last-child,
+  .copy.copy--custom > p:last-child,
+  .copy.copy--handoff > p:last-child,
+  .copy.copy--replace > p:last-child,
+  .copy.copy--replace-reasons > p:last-child,
+  .copy.copy--proof > p:last-child,
+  .copy--pilot .pilot-summary {
+    max-width: 35ch;
+    margin: 13px 0 0;
+    font-size: 16px;
+    line-height: 1.4;
+    text-wrap: pretty;
+  }
+
+  .copy--hero {
+    top: 43%;
+    align-items: flex-start;
+    transform: translate3d(0, calc(-50% + var(--copy-y)), 0) scale(var(--copy-scale));
+    transform-origin: left center;
+  }
+  .copy--hero::before { inset: -28px calc(var(--mobile-gutter) * -1) -40px; }
+  .copy--hero h1 {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 13px;
+    font-size: clamp(31px, 9.35vw, 40px);
+    line-height: .9;
+    letter-spacing: -.059em;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+  }
+  .copy.copy--hero > p.hero-summary {
+    max-width: 34ch;
+    margin: 17px 0 0;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .hero-action { width: 100%; align-items: stretch; gap: 9px; margin-top: 15px; }
+  .hero-offer,
+  .pilot-offer {
+    width: 100%;
+    max-width: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+  .hero-offer span,
+  .pilot-offer span {
+    min-height: 48px;
+    display: grid;
+    place-content: center;
+    gap: 3px;
+    padding: 7px 5px;
+    border: 1px solid rgba(243,243,237,.14);
+    border-radius: 10px;
+    background: rgba(9,11,7,.92);
+    font-size: 10px;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+  }
+  .hero-offer b, .pilot-offer b { font-size: 14px; }
+  .hero-offer i, .pilot-offer i { display: none; }
+  .hero-cta, .primary-cta {
+    width: 100%;
+    min-height: 52px;
+    justify-content: space-between;
+    margin-top: 0;
+    padding-left: 18px;
+    font-size: 12px;
+    touch-action: manipulation;
+  }
+
+  .hud-group,
+  .hud-group--criteria,
+  .hud-group--custom,
+  .hud-group--replace {
+    top: 54.5%;
+    right: 16px;
+    left: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .hud-group .hud-card,
+  .hud-group--criteria .hud-card,
+  .hud-group--custom .hud-card,
+  .hud-group--replace .hud-card {
+    min-height: 92px;
+    padding: 13px;
+  }
+  .hud-card small,
+  .hud-card em { font-size: 10px; line-height: 1.22; }
+  .hud-card strong { font-size: 14px; line-height: 1.16; }
+  .hud-card__index { top: 12px; right: 12px; font-size: 12px; }
+  .hud-card--custom strong { margin-top: 15px; font-size: 14px; }
+  .hud-group--replace .hud-card { padding-left: 41px; }
+  .hud-card--replace svg { top: 13px; left: 12px; width: 18px; height: 18px; }
+  .hud-card--replace strong { font-size: 13px; }
+
+  .hud-score--criteria,
+  .hud-score--custom {
+    top: 48.5%;
+    min-height: 36px;
+    padding: 7px 12px;
+  }
+  .hud-score--criteria span,
+  .hud-score--custom span { font-size: 10px; line-height: 1.2; }
+
+  .hud-lead { top: 49%; padding: 16px; }
+  .hud-lead header, .hud-lead footer,
+  .hud-lead__title em, .hud-lead dt { font-size: 10px; line-height: 1.25; }
+  .hud-lead__title { margin-top: 18px; padding-bottom: 13px; }
+  .hud-lead__title h3 { font-size: 23px; }
+  .hud-lead dd { font-size: 13px; }
+  .hud-lead dl div { padding: 9px 0; }
+  .hud-lead footer { margin-top: 13px; }
+
+  .hud-protocol { top: 50%; padding: 14px; }
+  .hud-protocol__head, .hud-protocol li small { font-size: 10px; line-height: 1.25; }
+  .hud-protocol__head { padding-bottom: 10px; }
+  .hud-protocol li { min-height: 62px; }
+  .hud-protocol li strong { font-size: 13px; }
+
+  .hud-case { top: 49%; }
+  .hud-case header, .hud-case footer,
+  .hud-case__metric small, .hud-case__room small { font-size: 10px; line-height: 1.25; }
+  .hud-case__main > span { font-size: 13px; }
+  .hud-case__room strong { font-size: 13px; }
+  .hud-case__room span { font-size: 11px; }
+
+  .copy--pilot h2 { font-size: clamp(32px, 9.5vw, 41px); }
+  .pilot-offer { margin-top: 14px; }
+  .primary-cta { margin-top: 10px; }
+  .copy--pilot > small { max-width: 36ch; margin-top: 10px; font-size: 11px; line-height: 1.4; }
+  .hud-score--pilot, .stage-index { display: none; }
+
+  .lead-dialog {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+    border-radius: 18px;
+  }
+  .lead-form { gap: 14px; padding: 26px 18px max(24px, env(safe-area-inset-bottom)); }
+  .dialog-close { top: 10px; right: 10px; width: 48px; height: 48px; }
+  .lead-form h2 { padding-right: 42px; font-size: clamp(34px, 10vw, 43px); }
+  .dialog-note { font-size: 16px; line-height: 1.42; }
+  .form-steps { grid-template-columns: 1fr; }
+  .form-steps li { min-height: 48px; grid-template-columns: 28px 1fr; align-items: center; }
+  .form-steps span, .lead-form label span, .contact-method legend { font-size: 10px; }
+  .lead-form input, .form-submit { min-height: 54px; font-size: 16px; }
+}
+
+@media (max-width: 800px) and (max-height: 680px) {
+  :root { --mobile-copy-top: calc(var(--safe-top) + 70px); }
+  .copy h2 { font-size: clamp(30px, 9.2vw, 34px); line-height: .93; }
+  .copy--hero { top: 44%; }
+  .copy--hero h1 { font-size: clamp(29px, 9.1vw, 34px); }
+  .copy.copy--hero > p.hero-summary { margin-top: 12px; font-size: 16px; line-height: 1.34; }
+  .hero-action { gap: 7px; margin-top: 10px; }
+  .hero-offer span { min-height: 44px; }
+  .hero-cta { min-height: 48px; }
+
+  .copy.copy--order > p:last-child,
+  .copy.copy--criteria > p:last-child,
+  .copy.copy--custom > p:last-child,
+  .copy.copy--handoff > p:last-child,
+  .copy.copy--replace > p:last-child,
+  .copy.copy--replace-reasons > p:last-child,
+  .copy.copy--proof > p:last-child,
+  .copy--pilot .pilot-summary { margin-top: 8px; font-size: 16px; line-height: 1.32; }
+
+  .hud-group,
+  .hud-group--criteria,
+  .hud-group--custom,
+  .hud-group--replace { top: 58%; gap: 6px; }
+  .hud-group .hud-card,
+  .hud-group--criteria .hud-card,
+  .hud-group--custom .hud-card,
+  .hud-group--replace .hud-card { min-height: 74px; padding: 10px 11px; }
+  .hud-card small { font-size: 10px; }
+  .hud-card strong, .hud-card--custom strong, .hud-card--replace strong { font-size: 13px; }
+  .hud-card em { display: none; }
+  .hud-card__index { top: 9px; right: 10px; font-size: 10px; }
+  .hud-card--custom strong { margin-top: 9px; }
+  .hud-group--replace .hud-card { padding-left: 37px; }
+  .hud-card--replace svg { top: 10px; left: 10px; width: 16px; height: 16px; }
+  .hud-score--criteria, .hud-score--custom { top: 51%; }
+  .hud-score--custom { top: 53%; }
+  .hud-group--custom { top: 61%; }
+
+  .hud-lead { top: 52%; padding: 12px 14px; }
+  .hud-lead__title { margin-top: 10px; padding-bottom: 8px; }
+  .hud-lead__title h3 { font-size: 19px; }
+  .hud-lead__title em { display: none; }
+  .hud-lead dl div { padding: 6px 0; }
+  .hud-lead dd { font-size: 12px; }
+  .hud-lead footer { margin-top: 8px; }
+
+  .hud-protocol { top: 55%; padding: 11px 12px; }
+  .hud-protocol__head { padding-bottom: 8px; }
+  .hud-protocol li { min-height: 50px; padding-top: 6px; padding-bottom: 6px; }
+  .hud-protocol li strong { font-size: 12px; }
+
+  .hud-case { top: 52%; }
+  .hud-case__primary { padding: 10px 12px; }
+  .hud-case__main { gap: 6px 10px; margin-top: 5px; padding: 6px 0 7px; }
+  .hud-case__main > strong { font-size: 50px; }
+  .hud-case__main > span { font-size: 12px; }
+  .hud-case__metric { min-height: 34px; padding-top: 7px; }
+  .hud-case__metric strong { font-size: 18px; }
+  .hud-case footer { padding-top: 6px; }
+  .hud-case__room { min-height: 56px; padding: 8px 10px; }
+  .hud-case__room span { font-size: 11px; }
+
+  .copy--pilot h2 { font-size: clamp(30px, 9.1vw, 34px); }
+  .pilot-offer { margin-top: 8px; }
+  .pilot-offer span { min-height: 42px; }
+  .primary-cta { min-height: 48px; margin-top: 8px; }
+  .copy--pilot > small { display: none; }
 }
