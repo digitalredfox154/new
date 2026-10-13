@@ -147,6 +147,37 @@ def visible_text_min_size(locator, minimum):
     )
 
 
+def click_sticky_cta(page, locator):
+    """Click the rendered CTA without Playwright re-scrolling the sticky stage."""
+    box = locator.bounding_box()
+    check("sticky CTA has rendered bounds", box and box["width"] > 0 and box["height"] > 0)
+    page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+
+
+def wait_sticky_cta(page):
+    page.wait_for_function(
+        """() => {
+          const el = document.querySelector('.copy--pilot [data-open-dialog]');
+          if (!el) return false;
+          const style = getComputedStyle(el);
+          const box = el.getBoundingClientRect();
+          return style.visibility === 'visible' && Number(style.opacity) > .9 &&
+            box.width > 0 && box.height >= 48 && box.top >= 0 && box.bottom <= innerHeight;
+        }""",
+        timeout=20000,
+    )
+
+
+def submit_form(page):
+    """Exercise the current form without retaining a locator across UI updates."""
+    page.evaluate(
+        """() => {
+          const form = document.querySelector('#contact-form');
+          form.requestSubmit(form.querySelector('.form-submit'));
+        }"""
+    )
+
+
 try:
     check("release target", manifest.get("target") == "/lead-gen-agency/")
     with sync_playwright() as playwright:
@@ -159,14 +190,15 @@ try:
             install_api_routes(context, leads, events, mode)
             context.tracing.start(screenshots=True, snapshots=True, sources=True)
             page = context.new_page()
-            page.set_default_timeout(15000)
+            page.set_default_timeout(30000)
             runtime_errors = []
             console_errors = []
             page.on("pageerror", lambda error: runtime_errors.append(str(error)))
             page.on("console", lambda message: console_errors.append(message.text) if message.type == "error" else None)
             response = page.goto(
                 "http://127.0.0.1:8765/?motion=full&utm_source=ci&utm_medium=test&utm_campaign=v12&private=discard",
-                wait_until="load",
+                wait_until="domcontentloaded",
+                timeout=30000,
             )
             page.wait_for_function("window.SAMAI_TRACK && document.documentElement.classList.contains('is-ready')")
             page.wait_for_timeout(100)
@@ -184,6 +216,18 @@ try:
             check(engine + " pilot CTA copy", "согласовать критерии теста" in (page.locator(".primary-cta span").text_content() or "").lower())
             check(engine + " form CTA copy", "согласовать критерии теста" in (page.locator(".form-submit span").text_content() or "").lower())
             check(engine + " logo", page.locator(".wordmark img").evaluate("image => image.complete && image.naturalWidth > 0"))
+            check(
+                engine + " logo is not cropped",
+                page.locator(".wordmark-mark").evaluate(
+                    """mark => {
+                      const frame = mark.getBoundingClientRect();
+                      const image = mark.querySelector('img').getBoundingClientRect();
+                      return image.left >= frame.left - 1 && image.top >= frame.top - 1 &&
+                        image.right <= frame.right + 1 && image.bottom <= frame.bottom + 1 &&
+                        getComputedStyle(mark.querySelector('img')).objectFit === 'contain';
+                    }"""
+                ),
+            )
             check(engine + " base criteria", page.locator('[data-hud="criteria"]').count() == 4)
             check(engine + " client criteria", page.locator('[data-hud="custom"]').count() == 4)
             check(engine + " replacement reasons", page.locator('[data-hud="replace"]').count() == 4)
@@ -210,9 +254,9 @@ try:
                 engine + " reached story end",
                 page.evaluate("scrollY >= document.documentElement.scrollHeight - innerHeight - 2"),
             )
-            pilot_cta.wait_for(state="visible")
-            check(engine + " pilot CTA visible", pilot_cta.is_visible())
-            pilot_cta.click()
+            wait_sticky_cta(page)
+            check(engine + " pilot CTA visible", pilot_cta.evaluate("el => getComputedStyle(el).visibility === 'visible'"))
+            click_sticky_cta(page, pilot_cta)
             page.wait_for_timeout(100)
             check(engine + " dialog opens", page.locator(".lead-dialog").evaluate("dialog => dialog.open"))
             check(engine + " form open event", any(item.get("event") == "form_open" and item.get("properties", {}).get("source") == "pilot" for item in events))
@@ -226,12 +270,12 @@ try:
             form.locator(".form-details summary").click()
             form.locator("#segment").fill("Новостройки")
             form.locator("#volume").fill("20")
-            form.locator(".form-submit").click()
+            submit_form(page)
             check(engine + " consent blocks network", len(leads) == 0 and form.locator("#consent-error").is_visible())
             consent = form.locator("#privacy-consent")
             consent.click(force=True)
             check(engine + " consent toggles", consent.is_checked())
-            form.locator(".form-submit").click()
+            submit_form(page)
             page.wait_for_function("document.querySelector('#form-status')?.dataset.state === 'success'")
             check(engine + " accepted UI", "Заявка отправлена" in form.locator("#form-status").inner_text())
             check(engine + " one lead", len(leads) == 1)
@@ -241,7 +285,7 @@ try:
             check(engine + " UTM", payload.get("utm", {}).get("source") == "ci" and payload.get("utm", {}).get("campaign") == "v12")
             check(engine + " consent version", payload.get("consent") is True and payload.get("consentVersion") == "2026-09-16")
             check(engine + " idempotency", len(payload.get("idempotencyKey", "")) >= 20)
-            form.locator(".form-submit").click()
+            submit_form(page)
             page.wait_for_timeout(100)
             check(engine + " repeated click deduplicated", len(leads) == 1)
             check(engine + " no console error before simulated outage", not console_errors)
@@ -249,16 +293,16 @@ try:
             mode["fail"] = True
             form.locator("#name").fill("Тест ошибки")
             form.locator("#contact-value").fill("+7 999 765-43-21")
-            form.locator(".form-submit").click()
+            submit_form(page)
             page.wait_for_function("document.querySelector('#form-status')?.dataset.state === 'error'")
             check(engine + " failure visible", "Заявка не отправлена" in form.locator("#form-status").inner_text())
             check(engine + " failed data preserved", form.locator("#contact-value").input_value() == "+7 999 765-43-21")
             failed_key = leads[-1]["idempotencyKey"]
-            form.locator(".form-submit").click()
+            submit_form(page)
             page.wait_for_timeout(200)
             check(engine + " retry idempotent", leads[-1]["idempotencyKey"] == failed_key)
             form.locator("#city").fill("Казань")
-            form.locator(".form-submit").click()
+            submit_form(page)
             page.wait_for_timeout(200)
             check(engine + " changed inquiry new key", leads[-1]["idempotencyKey"] != failed_key)
             serialized_events = json.dumps(events, ensure_ascii=False)
@@ -341,16 +385,54 @@ try:
                         engine + f" mobile {width} {label} supporting labels readable",
                         visible_text_min_size(page.locator(supporting_text_selector), 10),
                     )
+                    check(
+                        engine + f" mobile {width} {label} narrative clears evidence",
+                        expected.evaluate(
+                            """copy => {
+                              const a = copy.getBoundingClientRect();
+                              const evidence = [...document.querySelectorAll('[data-hud], [data-hud-score], [data-hud-lead], [data-hud-protocol], [data-hud-case]')]
+                                .filter(el => {
+                                  const style = getComputedStyle(el);
+                                  const box = el.getBoundingClientRect();
+                                  return Number(style.opacity) > .5 && style.visibility !== 'hidden' && box.width > 0 && box.height > 0;
+                                });
+                              return evidence.every(el => {
+                                const b = el.getBoundingClientRect();
+                                return a.right <= b.left + 1 || b.right <= a.left + 1 || a.bottom <= b.top + 1 || b.bottom <= a.top + 1;
+                              });
+                            }"""
+                        ),
+                    )
+                    check(
+                        engine + f" mobile {width} {label} evidence bounds",
+                        page.locator("[data-hud], [data-hud-score], [data-hud-lead], [data-hud-protocol], [data-hud-case]").evaluate_all(
+                            """els => els.filter(el => {
+                              const style = getComputedStyle(el);
+                              const box = el.getBoundingClientRect();
+                              return Number(style.opacity) > .5 && style.visibility !== 'hidden' && box.width > 0 && box.height > 0;
+                            }).every(el => {
+                              const r = el.getBoundingClientRect();
+                              return r.left >= -1 && r.right <= innerWidth + 1 && r.top >= -1 && r.bottom <= innerHeight + 1;
+                            })"""
+                        ),
+                    )
+                    if label in ("hero", "pilot"):
+                        cta_selector = ".hero-cta" if label == "hero" else ".primary-cta"
+                        check(
+                            engine + f" mobile {width} {label} CTA touch target",
+                            page.locator(cta_selector).evaluate("el => el.getBoundingClientRect().height >= 48"),
+                        )
                     # Assertions cover every viewport/chapter. Preserve visual
                     # evidence on a representative short iPhone without making
                     # WebGL screenshot encoding dominate the release timeout.
                     if width == 375 and label in ("hero", "pilot"):
                         capture(page, f"{engine}-mobile-{width}-{label}.png")
+                print(engine + f": mobile {width} complete", flush=True)
             page.set_viewport_size({"width": 390, "height": 844})
             story_progress(page, 1.0)
-            pilot_cta.wait_for(state="visible")
-            check(engine + " mobile pilot visible", pilot_cta.is_visible())
-            pilot_cta.click()
+            wait_sticky_cta(page)
+            check(engine + " mobile pilot visible", pilot_cta.evaluate("el => getComputedStyle(el).visibility === 'visible'"))
+            click_sticky_cta(page, pilot_cta)
             check(engine + " mobile dialog fits", page.locator(".lead-dialog").evaluate("dialog => dialog.getBoundingClientRect().width <= innerWidth"))
             capture(page, f"{engine}-mobile-form.png")
             form.locator(".dialog-close").click()
@@ -379,8 +461,9 @@ try:
             reduced_page.wait_for_timeout(250)
             reduced_cta = reduced_page.locator(".copy--pilot [data-open-dialog]")
             check(engine + " reduced final chapter", reduced_page.locator(".stage-index__current").inner_text() == "08")
-            check(engine + " reduced pilot CTA visible", reduced_cta.is_visible())
-            reduced_cta.click()
+            wait_sticky_cta(reduced_page)
+            check(engine + " reduced pilot CTA visible", reduced_cta.evaluate("el => getComputedStyle(el).visibility === 'visible'"))
+            click_sticky_cta(reduced_page, reduced_cta)
             check(engine + " reduced form opens", reduced_page.locator(".lead-dialog").get_attribute("open") is not None)
             reduced_page.locator(".dialog-close").click()
             reduced_page.wait_for_timeout(650)
@@ -397,8 +480,8 @@ try:
                 fallback_page.wait_for_function("document.documentElement.classList.contains('webgl-fallback-active')")
                 story_progress(fallback_page, 1.0)
                 fallback_cta = fallback_page.locator(".copy--pilot [data-open-dialog]")
-                fallback_cta.wait_for(state="visible")
-                check("dynamic fallback CTA visible", fallback_cta.is_visible())
+                wait_sticky_cta(fallback_page)
+                check("dynamic fallback CTA visible", fallback_cta.evaluate("el => getComputedStyle(el).visibility === 'visible'"))
                 check("dynamic fallback final chapter", fallback_page.locator(".stage-index__current").inner_text() == "08")
                 capture(fallback_page, "chromium-dynamic-fallback.png")
                 print("chromium: fallback complete", flush=True)

@@ -162,18 +162,20 @@ const updateStoryUi = (progress, viewportMobile) => {
   setHudElement(hud.pilotScore, pilotVisibility, 14 * (1 - pilotVisibility), mix(0.94, 1, pilotVisibility));
 
   if (viewportMobile) {
-    const activeCopy = progress < 0.12 ? "hero"
-      : progress < 0.29 ? "order"
-        : progress < 0.455 ? "criteria"
-          : progress < 0.595 ? "custom"
-            : progress < 0.715 ? "handoff"
-              : progress < 0.775 ? "replace"
-                : progress < 0.86 ? "replaceReasons"
-                  : progress < 0.945 ? "proof"
-                    : "pilot";
+    const mobileCopyVisibility = {
+      hero: 1 - smooth(0.105, 0.118, progress),
+      order: envelope(progress, 0.122, 0.135, 0.275, 0.288),
+      criteria: envelope(progress, 0.292, 0.305, 0.44, 0.453),
+      custom: envelope(progress, 0.457, 0.47, 0.58, 0.593),
+      handoff: envelope(progress, 0.597, 0.61, 0.7, 0.713),
+      replace: envelope(progress, 0.717, 0.727, 0.763, 0.773),
+      replaceReasons: envelope(progress, 0.777, 0.787, 0.847, 0.858),
+      proof: envelope(progress, 0.862, 0.873, 0.933, 0.943),
+      pilot: smooth(0.947, 0.96, progress),
+    };
     Object.entries(copy).forEach(([name, element]) => {
-      const active = name === activeCopy;
-      setCopy(element, active ? 1 : 0, active ? 0 : 12, active ? 1 : 0.98);
+      const visibility = mobileCopyVisibility[name];
+      setCopy(element, visibility, 10 * (1 - visibility), mix(0.985, 1, visibility));
     });
   } else {
     const heroVisibility = 1 - smooth(0.075, 0.15, progress);
@@ -862,9 +864,11 @@ const initScene = () => {
     const pixelRatio = Math.min(window.devicePixelRatio, pixelRatioCap);
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(width, height, false);
-    composer.setPixelRatio(pixelRatio);
-    composer.setSize(width, height);
-    bloom.setSize(width, height);
+    if (!viewportMobile) {
+      composer.setPixelRatio(pixelRatio);
+      composer.setSize(width, height);
+      bloom.setSize(width, height);
+    }
     measureStory();
   };
   resize();
@@ -874,7 +878,7 @@ const initScene = () => {
   const pointer = new THREE.Vector2();
   const pointerTarget = new THREE.Vector2();
   window.addEventListener("pointermove", (event) => {
-    if (!fullMotion) return;
+    if (!fullMotion || viewportMobile) return;
     pointerTarget.x = event.clientX / window.innerWidth - 0.5;
     pointerTarget.y = event.clientY / window.innerHeight - 0.5;
   }, { passive: true });
@@ -908,11 +912,18 @@ const initScene = () => {
   const clock = new THREE.Clock();
   const current = new THREE.Vector3();
   let motionTime = 0;
+  let lastRenderedAt = 0;
   let lastParticleProgress = -1;
   let lastUiProgress = -1;
   let lastUiMobile = null;
 
-  const render = () => {
+  const render = (timestamp = performance.now()) => {
+    const settled = Math.abs(state.progress - state.targetProgress) < 0.0001;
+    if (viewportMobile && ready && settled && timestamp - lastRenderedAt < (1000 / 30)) {
+      frameHandle = requestAnimationFrame(render);
+      return;
+    }
+    lastRenderedAt = timestamp;
     const delta = Math.min(clock.getDelta(), 0.05);
     if (document.hidden) {
       frameHandle = requestAnimationFrame(render);
@@ -1095,7 +1106,8 @@ const initScene = () => {
       lastUiMobile = viewportMobile;
     }
 
-    composer.render();
+    if (viewportMobile) renderer.render(scene, camera);
+    else composer.render();
     if (!ready) {
       ready = true;
       requestAnimationFrame(() => root.classList.add("is-ready"));
