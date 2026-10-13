@@ -51,6 +51,7 @@ const copy = {
 };
 
 const hud = {
+  order: document.querySelector("[data-hud-order]"),
   criteria: [...document.querySelectorAll('[data-hud="criteria"]')],
   criteriaScore: document.querySelector('[data-hud-score="criteria"]'),
   custom: [...document.querySelectorAll('[data-hud="custom"]')],
@@ -112,6 +113,7 @@ const setHudElement = (element, opacity, y = 0, scale = 1) => {
 };
 
 const updateStoryUi = (progress, viewportMobile) => {
+  const orderVisibility = envelope(progress, 0.122, 0.14, 0.275, 0.29);
   const scoreVisibility = envelope(progress, 0.36, 0.395, 0.47, 0.515);
   const customScoreVisibility = envelope(progress, 0.5, 0.55, 0.6, 0.66);
   const handoffVisibility = envelope(progress, 0.61, 0.66, 0.68, 0.708);
@@ -121,6 +123,8 @@ const updateStoryUi = (progress, viewportMobile) => {
   const caseVisibility = envelope(progress, 0.86, 0.89, 0.925, 0.952);
   const caseEnter = smooth(0.86, 0.895, progress);
   const pilotVisibility = smooth(0.94, 0.975, progress);
+
+  setHudElement(hud.order, orderVisibility, 18 * (1 - orderVisibility), mix(0.965, 1, orderVisibility));
 
   hud.criteria.forEach((card, index) => {
     const enter = smooth(0.295 + index * 0.012, 0.345 + index * 0.012, progress);
@@ -255,16 +259,38 @@ const createOrderTexture = () => createTexture({
     ctx.fillStyle = "#bfff52";
     ctx.font = "700 28px Arial";
     ctx.letterSpacing = "7px";
-    ctx.fillText("01 / ОТБОР", 76, 88);
+    ctx.fillText("УСЛОВИЯ ЗАМЕНЫ", 76, 88);
     ctx.fillStyle = "#f3f3ed";
-    ctx.font = "500 92px Arial";
-    ctx.letterSpacing = "-5px";
-    ctx.fillText("Оставляем тех,", 74, 265);
-    ctx.fillText("кто подходит.", 74, 380);
+    ctx.font = "500 70px Arial";
+    ctx.letterSpacing = "-4px";
+    ctx.fillText("Не соответствует — заменяем.", 74, 205);
+
+    const reasons = [
+      ["01 / ДУБЛЬ", "Контакт уже был"],
+      ["02 / НЕТ ИНТЕРЕСА", "Покупка не актуальна"],
+      ["03 / УЖЕ КУПИЛ", "Объект приобретён"],
+      ["04 / НЕДОЗВОН", "Более 5 попыток"],
+    ];
+    reasons.forEach(([label, value], index) => {
+      const x = 76 + index * 362;
+      ctx.fillStyle = "rgba(191,255,82,.72)";
+      ctx.font = "700 18px Arial";
+      ctx.letterSpacing = "2px";
+      ctx.fillText(label, x, 340);
+      ctx.fillStyle = "rgba(243,243,237,.9)";
+      ctx.font = "600 25px Arial";
+      ctx.letterSpacing = "-1px";
+      ctx.fillText(value, x, 390);
+    });
+
     ctx.fillStyle = "rgba(201,204,194,.62)";
-    ctx.font = "600 24px Arial";
+    ctx.font = "600 22px Arial";
     ctx.letterSpacing = "3px";
-    ctx.fillText("ПО УСЛОВИЯМ, КОТОРЫЕ ЗАДАЛИ ВЫ", 78, 515);
+    ctx.fillText("ВСЕ ОСНОВАНИЯ ФИКСИРУЕМ ДО СТАРТА", 78, 520);
+    ctx.fillStyle = "#bfff52";
+    ctx.textAlign = "right";
+    ctx.fillText("СРОК НЕ ОГРАНИЧЕН", width - 78, 520);
+    ctx.textAlign = "left";
     ctx.strokeStyle = "rgba(191,255,82,.68)";
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -859,7 +885,7 @@ const initScene = () => {
     const constrainedDevice = (navigator.deviceMemory && navigator.deviceMemory <= 4)
       || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
     const pixelRatioCap = viewportMobile
-      ? (constrainedDevice ? 1 : 1.2)
+      ? (constrainedDevice ? 1.1 : 1.5)
       : (constrainedDevice ? 1.35 : 1.65);
     const pixelRatio = Math.min(window.devicePixelRatio, pixelRatioCap);
     renderer.setPixelRatio(pixelRatio);
@@ -1008,11 +1034,11 @@ const initScene = () => {
     pathGlowMaterial.opacity = orderVisibility * 0.36;
     pathCoreMaterial.opacity = orderVisibility * 0.76;
     const orderScale = mix(0.42, 1, smooth(0.14, 0.22, progress));
-    orderPanel.scale.setScalar(orderScale * (viewportMobile ? 0.69 : 1));
+    orderPanel.scale.setScalar(orderScale);
     orderPanel.position.z = mix(-0.8, 2.25, smooth(0.14, 0.22, progress)) - smooth(0.29, 0.36, progress) * 4;
-    orderPanel.position.y = viewportMobile ? -0.22 : -0.04;
+    orderPanel.position.y = -0.04;
     orderPanel.rotation.x = mix(0.24, 0, smooth(0.14, 0.22, progress));
-    setPanelOpacity(orderPanel, orderVisibility);
+    setPanelOpacity(orderPanel, viewportMobile ? 0 : orderVisibility);
 
     const criteriaTargets = viewportMobile ? criteriaMobileTargets : criteriaDesktopTargets;
     criteriaPanels.forEach((panel, index) => {
